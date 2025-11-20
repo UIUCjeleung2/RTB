@@ -7,11 +7,23 @@
 .navbar {
     background-color: #adadad;
     width: 100%;
-    height: 50px;
+    height: 100px;
 }
 
 .board-container {
     width: 100%;
-    height: calc(100% - 50px);
-    background-color: aqua;    
+    height: calc(100% - 100px);
+    background-color: white;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+}
+
+.dashboard-board {
+    height: 150px;
+    margin: 20px;
+    padding: 30px;
+    border-radius: 10px;
+    border-color: black;
+    border-width: 5px;
+    border-style: solid;
 }

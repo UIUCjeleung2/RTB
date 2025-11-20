@@ -27,9 +27,22 @@ function Navbar() {
 }
 
 function BoardContainer() {
+    function handleClick() {
+        console.log("Clicked!");
+    }
+
     return (
-        <div className="board-container">
-            
+        <div className="board-container" onClick={handleClick}>
+            <div className='dashboard-board'></div>
+            <div className='dashboard-board'></div>
+            <div className='dashboard-board'></div>
+            <div className='dashboard-board'></div>
+            <div className='dashboard-board'></div>
+            <div className='dashboard-board'></div>
+            <div className='dashboard-board'></div>
+            <div className='dashboard-board'></div>
+            <div className='dashboard-board'></div>
+            <div className='dashboard-board'></div> 
         </div>
     )
 }
