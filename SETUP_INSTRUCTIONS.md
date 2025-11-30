@@ -1,132 +1,222 @@
-# RTB Login Screen Setup Instructions
+# RTB (Recursive Trello Board) Setup Instructions
 
-## 1. Switch to login_screen branch
+## Overview
+
+This application uses **Google OAuth** for authentication and **MongoDB** for data storage. No passwords needed - users sign in with their Google accounts!
+
+---
+
+## Quick Start
+
+### 1. Install Dependencies
+
 ```bash
-git checkout login_screen
-```
-
-## 2. Setup Backend
-
-### Navigate to backend directory:
-```bash
+# Backend
 cd rtb/backend
-```
+npm install
 
-### Create a .env file:
-```bash
-# Create .env file with these variables:
-PORT=5001
-MONGO_URI=your_mongodb_connection_string_here
-JWT_SECRET=your_random_secret_key_here
-```
-
-**Example .env:**
-```
-PORT=5001
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/rtb?retryWrites=true&w=majority
-JWT_SECRET=super_secret_random_string_12345
-```
-
-**To generate a secure JWT_SECRET:**
-```bash
-# On Windows (PowerShell):
--join ((65..90) + (97..122) + (48..57) | Get-Random -Count 32 | % {[char]$_})
-
-# On Mac/Linux:
-openssl rand -base64 32
-```
-
-### Install dependencies (if not already done):
-```bash
+# Frontend
+cd rtb/frontend
 npm install
 ```
 
-### Start the backend server:
+### 2. Setup Google OAuth
+
+**See detailed instructions in:** `GOOGLE_OAUTH_SETUP.md`
+
+**Quick version:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a project
+3. Enable Google+ API
+4. Create OAuth 2.0 Client ID
+5. Add `http://localhost:3000` to Authorized JavaScript origins
+6. Copy your Client ID
+
+### 3. Configure Environment Variables
+
+**Backend** (`rtb/backend/.env`):
+```env
+PORT=5001
+MONGO_URI=mongodb+srv://your_user:your_password@cluster.mongodb.net/rtb
+JWT_SECRET=your_random_secret_key
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+```
+
+**Frontend** (`rtb/frontend/.env`):
+```env
+REACT_APP_GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+```
+
+**IMPORTANT:** Both Client IDs must be identical!
+
+### 4. Run the Application
+
+**Terminal 1 - Backend:**
 ```bash
+cd rtb/backend
 npm start
 ```
 
-**You should see:**
+Expected output:
 ```
 MongoDB connected
 Server running on port 5001
 ```
 
-**Leave this terminal running!**
-
----
-
-## 3. Setup Frontend (in a NEW terminal)
-
-### Navigate to frontend directory:
+**Terminal 2 - Frontend:**
 ```bash
 cd rtb/frontend
-```
-
-### Install dependencies (if not already done):
-```bash
-npm install
-```
-
-### Start the frontend development server:
-```bash
 npm start
 ```
 
-**You should see:**
-```
-Compiled successfully!
-You can now view frontend in the browser.
-
-Local:            http://localhost:3000
-```
-
-**Your browser should auto-open to http://localhost:3000**
+Browser opens to: `http://localhost:3000`
 
 ---
 
-## 4. Test the Application
+## What's Implemented
 
-### Register a new user:
-1. Click "Register" link on login page
-2. Enter email: `test@example.com`
-3. Enter password: `password123`
-4. Click "Sign Up"
-5. You should see "Registration successful! Please log in."
+### Authentication Flow
+1. User clicks "Sign in with Google"
+2. Google authentication popup
+3. Backend verifies Google JWT
+4. User created in MongoDB (if new) or retrieved (if existing)
+5. Backend issues JWT token
+6. User redirected to dashboard
 
-### Login:
-1. Enter the same email/password
-2. Click "Sign In"
-3. You should see "Login successful!"
-4. Browser will try to navigate to `/dashboard` (which doesn't exist yet)
+### Database Schema (MongoDB)
+```javascript
+User {
+  googleId: String (unique),
+  email: String (unique),
+  name: String,
+  picture: String,
+  lastLogin: Date,
+  createdAt: Date
+}
+```
 
-### Check if it worked:
-- Open browser DevTools (F12)
-- Go to Console tab
-- You should see no errors
-- Go to Application tab → Local Storage → http://localhost:3000
-- You should see `token` and `email` stored there
+### Tech Stack
+- **Frontend:** React 19, React Router
+- **Backend:** Express 5, Node.js
+- **Database:** MongoDB Atlas
+- **Authentication:** Google OAuth + JWT
+- **Security:** google-auth-library for token verification
 
 ---
 
 ## Troubleshooting
 
-### Backend won't start:
-- **Check MongoDB connection**: Make sure MONGO_URI in .env is correct
-- **Port already in use**: Change PORT in .env to 5002, update frontend code
-- **Missing .env**: Create the file in `rtb/backend/`
+### "Invalid Google token"
+- Check `GOOGLE_CLIENT_ID` matches in both `.env` files
+- Restart both servers after changing `.env`
 
-### Frontend can't connect to backend:
-- **CORS error**: Backend has CORS enabled, should work
-- **Check backend is running**: Visit http://localhost:5001 in browser
-  - Should see: `{"message":"Server is running"}`
-- **Wrong port**: Check Login.js and Register.js use `http://localhost:5001`
+### Google button not showing
+- Check browser console for errors
+- Verify Google script in `public/index.html`
+- Clear browser cache
 
-### "User already exists":
-- You already registered that email
-- Use a different email OR delete from MongoDB
+### MongoDB connection failed
+- Verify `MONGO_URI` is correct
+- Check IP whitelist in MongoDB Atlas
+- Ensure cluster is running
 
-### MongoDB connection error:
-- Backend will still start but authentication won't work
-- Check your MONGO_URI is correct
-- Make sure IP is whitelisted in MongoDB Atlas (or use 0.0.0.0/0 for all)
+### Port already in use
+- Change `PORT` in `rtb/backend/.env` to different port (e.g., 5002)
+- Update frontend API calls in `GoogleLogin.js` to match new port
+
+---
+
+## Project Structure
+
+```
+RTB/
+├── rtb/
+│   ├── backend/
+│   │   ├── controllers/
+│   │   │   └── authController.js      # Google OAuth logic
+│   │   ├── models/
+│   │   │   └── User.js                # User schema
+│   │   ├── routes/
+│   │   │   └── authRoutes.js          # /auth/google endpoint
+│   │   ├── middleware/
+│   │   │   └── auth.js                # JWT verification
+│   │   ├── server.js                  # Express server
+│   │   ├── package.json
+│   │   └── .env                       # Backend config
+│   │
+│   └── frontend/
+│       ├── src/
+│       │   ├── components/
+│       │   │   └── GoogleLogin.js     # Google button component
+│       │   ├── pages/
+│       │   │   └── Login/
+│       │   │       ├── Login.js       # Login page
+│       │   │       └── Login.css      # Login styles
+│       │   ├── App.js                 # Router setup
+│       │   └── index.js
+│       ├── public/
+│       │   └── index.html             # Google script loaded here
+│       ├── package.json
+│       └── .env                       # Frontend config
+│
+├── GOOGLE_OAUTH_SETUP.md              # Detailed Google setup guide
+└── SETUP_INSTRUCTIONS.md              # This file
+```
+
+---
+
+## Next Steps
+
+Once authentication is working:
+
+1. **Create Dashboard Page**
+   - Display user info
+   - Show user's boards
+
+2. **Implement Board System**
+   - Create Board model
+   - CRUD operations for boards
+
+3. **Implement Task System**
+   - Create Task model
+   - Recursive task subdivision
+   - Task hierarchy visualization
+
+4. **Protected Routes**
+   - Add JWT middleware to protected endpoints
+   - Frontend route guards
+
+---
+
+## Security Notes
+
+✅ **Good practices:**
+- `.env` files are in `.gitignore`
+- Google verifies JWT on backend (secure)
+- JWT tokens expire after 7 days
+- User data encrypted in transit (HTTPS)
+
+❌ **Don't do this:**
+- Commit `.env` files
+- Share Client IDs publicly
+- Use production credentials in development
+
+---
+
+## Resources
+
+- [Google OAuth Guide](GOOGLE_OAUTH_SETUP.md)
+- [Google Identity Docs](https://developers.google.com/identity/gsi/web)
+- [MongoDB Atlas Docs](https://docs.atlas.mongodb.com/)
+- [JWT.io](https://jwt.io/) - Decode and inspect JWT tokens
+
+---
+
+## Support
+
+If you encounter issues:
+1. Check the troubleshooting section above
+2. Review `GOOGLE_OAUTH_SETUP.md` for detailed Google setup
+3. Check server logs in terminal
+4. Check browser console (F12) for frontend errors
+5. Verify all `.env` variables are set correctly
