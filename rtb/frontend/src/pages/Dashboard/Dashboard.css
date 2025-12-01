@@ -159,3 +159,18 @@
   margin: 0;
   font-weight: 500;
 }
+
+/* Loading & Empty States */
+.loading-message {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+  grid-column: 1 / -1;
+}
