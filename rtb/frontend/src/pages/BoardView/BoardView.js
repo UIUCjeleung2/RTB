@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./BoardView.css";
+import BoardCard from "../../components/BoardCard.tsx";
+import Button from "@mui/material/Button";
+import { Typography, Box } from "@mui/material";
+import Task from "../../components/Task.tsx";
+import AddTask from "../../components/AddTask.tsx";
 
 export default function BoardView() {
   const { boardId } = useParams();
@@ -64,7 +69,9 @@ export default function BoardView() {
 
   return (
     <div className="board-view">
-      <div className="board-navbar">
+
+      {/* This is the navbar at the top of the page*/}
+      <div className="board-navbar">        
         <button className="back-button" onClick={handleBackToDashboard}>
           ← Back to Dashboard
         </button>
@@ -80,7 +87,32 @@ export default function BoardView() {
         </div>
       </div>
 
-      <div className="board-content">
+      {/* This is the actual board stuff */}
+
+      <BoardCard>
+        <Box 
+          sx={{
+            display: 'flex',            // 1. Enable Flexbox
+            flexDirection: 'row',       // (Optional but explicit) Arrange children in a row
+            alignItems: 'center',       // Vertically centers the items (button, text, button)
+            gap: 1,                     // Adds spacing between the children (equivalent to theme.spacing(1))
+            p: 1,                       // Adds a little padding around the whole group
+            border: '1px solid #ccc'    // Just to visualize the container boundaries
+          }}
+        >
+            <Button variant="outlined">Button</Button>
+            <Typography variant="h6" component="h2">Task Name</Typography>
+            <Button variant="outlined">Checkmark</Button>
+        </Box>
+        
+        <Task/>
+        <AddTask>
+          <Typography variant="body1" color="black">+ Add Task</Typography>
+        </AddTask>
+
+      </BoardCard>
+
+      {/* <div className="board-content">
         <div className="board-info-card">
           <h2>Board Information</h2>
           <div className="info-row">
@@ -120,7 +152,7 @@ export default function BoardView() {
             Tasks will appear here once implemented
           </p>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
