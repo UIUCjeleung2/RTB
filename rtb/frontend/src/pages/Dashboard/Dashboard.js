@@ -65,6 +65,54 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteBoard = async (boardId) => {
+    // IMPORTANT: Replace this with a custom confirmation modal in your UI
+    const isConfirmed = window.confirm(
+      "Are you sure you want to permanently delete this board? This cannot be undone."
+    );
+    
+    if (!isConfirmed) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        // Replace with custom notification/redirect
+        console.error("Authorization token not found.");
+        return; 
+      }
+
+      // Use DELETE method and include the board ID in the URL for the RESTful endpoint
+      const response = await fetch(`http://localhost:5001/api/boards/${boardId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: token, // Pass the authentication token
+        },
+      });
+
+      if (response.ok) {
+        // Filter out the deleted board from the local state list
+        const updatedBoards = boards.filter(board => board._id !== boardId);
+        setBoards(updatedBoards);
+        
+        console.log(`Board with ID ${boardId} successfully deleted.`);
+        // Replace with custom success toast/notification UI
+        // showSuccessNotification("Board deleted successfully!");
+      } else {
+        // Handle non-200 responses (e.g., 404 Not Found, 401 Unauthorized)
+        const errorData = await response.json().catch(() => ({ message: "Server error" }));
+        console.error("Failed to delete board:", errorData.message);
+        // Replace with custom error notification UI
+        // showErrorNotification(`Failed to delete board: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error("Network or unexpected error deleting board:", error);
+      // Replace with custom error notification UI
+      // showErrorNotification("Network error occurred while deleting board.");
+    }
+  };
+
   return (
     <div className="dashboard">
       <Navbar user={user} />
@@ -72,6 +120,7 @@ export default function Dashboard() {
         boards={boards}
         loading={loading}
         onCreateBoard={handleCreateBoard}
+        onDeleteBoard={handleDeleteBoard}
       />
     </div>
   );
@@ -107,7 +156,7 @@ function Navbar({ user }) {
   );
 }
 
-function BoardContainer({ boards, loading, onCreateBoard }) {
+function BoardContainer({ boards, loading, onCreateBoard, onDeleteBoard }) {
   const navigate = useNavigate();
 
   const handleBoardClick = (boardId) => {
@@ -138,6 +187,7 @@ function BoardContainer({ boards, loading, onCreateBoard }) {
                   ? "No tasks yet"
                   : `${board.taskCount} task${board.taskCount !== 1 ? "s" : ""}`}
               </p>
+            <p onClick={() => {onDeleteBoard(board._id)}}>Delete board (move to menu later)</p>
             </div>
           </div>
         ))}
