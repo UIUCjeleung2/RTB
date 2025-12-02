@@ -1,0 +1,148 @@
+/* Board View Container */
+.board-view {
+  width: 100%;
+  height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Board Navbar */
+.board-navbar {
+  background-color: #1677FF;
+  width: 100%;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.back-button {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.board-title {
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.board-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.board-profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* Board Content */
+.board-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px;
+}
+
+/* Board Info Card */
+.board-info-card {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto 30px auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.board-info-card h2 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.info-row {
+  display: flex;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #666;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  color: #1a1a1a;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-preview {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  display: inline-block;
+}
+
+/* Tasks Placeholder */
+.tasks-placeholder {
+  background: white;
+  border-radius: 8px;
+  padding: 40px;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.placeholder-text {
+  color: #999;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Loading & Error States */
+.loading-message,
+.error-message {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+.error-message {
+  color: #ff4d4f;
+}

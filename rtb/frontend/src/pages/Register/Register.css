@@ -1,0 +1,80 @@
+/* Wrapper to center the register card */
+.app-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f5f5f5; /* light gray background */
+}
+
+/* Register card container */
+.register-container {
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  gap: 24px;
+
+  width: 320px;
+  min-width: 320px;
+  height: auto;
+
+  background: #FFFFFF;
+  border: 1px solid #D9D9D9;
+  border-radius: 8px;
+}
+
+/* Title */
+.register-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Form wrapper */
+.form-fields {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Input fields */
+.register-input {
+  width: 90%; /* fills most of the card width */
+  height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Submit button */
+.register-button {
+  width: 90%;
+  height: 40px;
+  background-color: #1677ff; /* same as login button */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.register-button:hover {
+  opacity: 0.95;
+}
+
+/* Optional: link text for already have an account */
+.register-footer {
+  font-size: 14px;
+}
+
+.register-footer span {
+  color: #1677ff;
+  cursor: pointer;
+}
