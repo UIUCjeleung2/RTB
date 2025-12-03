@@ -7,6 +7,7 @@ import CardHeader from '@mui/material/CardHeader';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {Typography, Box, Menu, MenuItem, TextField, ClickAwayListener} from "@mui/material";
+import EditableText from './EditableText.tsx';
 
 interface TaskProps {
   title: string;
@@ -32,8 +33,8 @@ export default function Task({title, onTitleChange} : TaskProps) {
 
   // Handles renaming the tasks
   const [isEditing, setIsEditing] = React.useState(false);
-  const [currentTitle, setCurrentTitle] = React.useState(title);
 
+  // Makes the Tect go into Edit mode, and closes the menu
   const handleRename = () => {
     setIsEditing(true);
     handleClose();
@@ -43,29 +44,15 @@ export default function Task({title, onTitleChange} : TaskProps) {
     // The actual card
     <Card sx={{ maxWidth: 345, p: 1 }}>
 
-      <ClickAwayListener onClickAway={() => {setIsEditing(false); onTitleChange(currentTitle);}}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
 
           {/* If we wanna rename the Task, a Textfield will appear */}
-          {isEditing ? (
-            <TextField
-              value={currentTitle}
-              onChange={(e) => setCurrentTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  setIsEditing(false);
-                  onTitleChange(currentTitle);
-                }
-              }}
-              size="small"
-              autoFocus
-              fullWidth
-            />
-          ) : (
-            <Typography variant="h6" sx={{ p: 1 }}>
-              {currentTitle}
-            </Typography>
-          )}
+          <EditableText
+            title = {title}
+            onTitleChange={onTitleChange}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+          ></EditableText>
 
           <IconButton aria-label="settings" onClick={handleOpen}>
             <MoreVertIcon />
@@ -82,8 +69,6 @@ export default function Task({title, onTitleChange} : TaskProps) {
             <MenuItem onClick={handleClose}>Change Color</MenuItem>
           </Menu>
         </Box>
-      </ClickAwayListener>
-
 </Card>
 
   );
