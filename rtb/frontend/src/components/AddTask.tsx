@@ -1,4 +1,4 @@
-// This is the AddTask button at the bottom of the board card.
+// This is the AddTask button at the bottom of the board
 import { Box, Button, Theme, SxProps } from "@mui/material";
 
 

@@ -3,9 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import "./BoardView.css";
 import BoardCard from "../../components/BoardCard.tsx";
 import Button from "@mui/material/Button";
-import { Typography, Box } from "@mui/material";
+import { Typography, Box, IconButton } from "@mui/material";
 import Task from "../../components/Task.tsx";
 import AddTask from "../../components/AddTask.tsx";
+import ArrowUpward from "@mui/icons-material/ArrowUpward";
+import Check from "@mui/icons-material/Check";
+import TaskList from "../../components/TaskList.tsx";
 
 export default function BoardView() {
   const { boardId } = useParams();
@@ -89,26 +92,34 @@ export default function BoardView() {
 
       {/* This is the actual board stuff */}
 
-      <BoardCard>
+      <BoardCard sx = {{minWidth: 345}}>
         <Box 
           sx={{
-            display: 'flex',            // 1. Enable Flexbox
-            flexDirection: 'row',       // (Optional but explicit) Arrange children in a row
-            alignItems: 'center',       // Vertically centers the items (button, text, button)
-            gap: 1,                     // Adds spacing between the children (equivalent to theme.spacing(1))
-            p: 1,                       // Adds a little padding around the whole group
-            border: '1px solid #ccc'    // Just to visualize the container boundaries
+            display: 'flex',               // 1. Enable Flexbox
+            flexDirection: 'row',          // (Optional but explicit) Arrange children in a row
+            alignItems: 'stretch',         // Vertically centers the items (button, text, button)
+            gap: 1,                        // Adds spacing between the children (equivalent to theme.spacing(1))
+            p: 1,                          // Adds a little padding around the whole group
+            border: '1px solid #ccc',    // Just to visualize the container boundaries
+            width: "95%"
           }}
         >
-            <Button variant="outlined">Button</Button>
-            <Typography variant="h6" component="h2">Task Name</Typography>
-            <Button variant="outlined">Checkmark</Button>
+            <IconButton variant="outlined">
+              <ArrowUpward sx={{color:"blue"}}/>
+            </IconButton>
+            <Typography variant="h6" component="h2" sx={{flex: 1, textAlign: "center"}}>Task Name</Typography>
+            <IconButton variant="outlined">
+              <Check sx = {{color:"black"}}/>
+            </IconButton>
         </Box>
         
-        <Task/>
+        {/* The actual task card */}
+        {/* <Task/>
         <AddTask>
           <Typography variant="body1" color="black">+ Add Task</Typography>
-        </AddTask>
+        </AddTask> */}
+
+        <TaskList/>
 
       </BoardCard>
 

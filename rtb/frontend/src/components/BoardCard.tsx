@@ -13,7 +13,7 @@ const BoardCard = styled(Box)(({theme}) => ({
     width: "fit-content",
     height: 500,
     outline: '2px solid green',
-    backgroundColor: "#D2D2D2",
+    backgroundColor: "#d2d2d2ff",
 
     // --- FLEXBOX CHANGES ---
     display: 'flex',
