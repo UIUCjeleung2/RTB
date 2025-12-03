@@ -19,7 +19,7 @@ export default function TaskList() {
             {/* Task list box, overflowY makes it scrollable */}
             <Box sx = {{width: "100%", overflowY: "auto"}}>
                 {tasks.map((task, index)=> (
-                    <Task key={index} />
+                    <Task key={index} title={`Subtask ${index + 1}`}/>
                 ))}
             </Box>
 
