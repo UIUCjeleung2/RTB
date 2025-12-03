@@ -6,16 +6,15 @@ import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import {Menu, MenuItem} from "@mui/material";
-
+import {Typography, Box, Menu, MenuItem, TextField, ClickAwayListener} from "@mui/material";
 
 interface TaskProps {
   title: string;
+  onTitleChange: (newTitle: string) => void;
 }
 
-export default function Task({title} : TaskProps) {
+export default function Task({title, onTitleChange} : TaskProps) {
 
-  // const [isEditing, setIsEditing] = React.useState(false);
 
   // Handles the opening and closing of the Menu on the three dots
   const [anchorElement, setAnchorElement] = React.useState<null | HTMLElement>(null);
@@ -26,39 +25,66 @@ export default function Task({title} : TaskProps) {
     setAnchorElement(event.currentTarget);
   };
 
+  // Close should handle
   const handleClose = () => {
     setAnchorElement(null);
   }
 
+  // Handles renaming the tasks
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [currentTitle, setCurrentTitle] = React.useState(title);
+
+  const handleRename = () => {
+    setIsEditing(true);
+    handleClose();
+  }
+
   return (
     // The actual card
-    <Card sx={{ maxWidth: 345 }}>
-      <CardHeader
-        action={
-          <>
+    <Card sx={{ maxWidth: 345, p: 1 }}>
+
+      <ClickAwayListener onClickAway={() => {setIsEditing(false); onTitleChange(currentTitle);}}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+
+          {/* If we wanna rename the Task, a Textfield will appear */}
+          {isEditing ? (
+            <TextField
+              value={currentTitle}
+              onChange={(e) => setCurrentTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setIsEditing(false);
+                  onTitleChange(currentTitle);
+                }
+              }}
+              size="small"
+              autoFocus
+              fullWidth
+            />
+          ) : (
+            <Typography variant="h6" sx={{ p: 1 }}>
+              {currentTitle}
+            </Typography>
+          )}
+
           <IconButton aria-label="settings" onClick={handleOpen}>
             <MoreVertIcon />
           </IconButton>
-          
-          {/* A bunch of menu items */}
           <Menu
             anchorEl={anchorElement}
-            open = {open}
-            onClose = {handleClose}
-            anchorOrigin={{
-              vertical: "top",
-              horizontal: "left"
-            }}>
-            <MenuItem onClick={handleClose}>Rename</MenuItem>
+            open={open}
+            onClose={handleClose}
+            anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+          >
+            <MenuItem onClick={handleRename}>Rename</MenuItem>
             <MenuItem onClick={handleClose}>Add Step</MenuItem>
             <MenuItem onClick={handleClose}>Delete Step</MenuItem>
             <MenuItem onClick={handleClose}>Change Color</MenuItem>
           </Menu>
-          </>
+        </Box>
+      </ClickAwayListener>
 
-        }
-        title={title}
-      />
-    </Card>
+</Card>
+
   );
 }

@@ -10,7 +10,15 @@ export default function TaskList() {
 
     // Function that the click button calls
     const addTask = () => {
-        setTasks(prev => [...prev, `Task ${prev.length + 1}`]);
+        setTasks(prev => [...prev, `Subtask ${prev.length + 1}`]);
+    };
+
+    const updateTaskTitle = (index: number, newTitle: string) => {
+    setTasks(prev => {
+        const updatedTasks = [...prev];
+        updatedTasks[index] = newTitle;
+        return updatedTasks;
+    });
     };
 
     return (
@@ -19,7 +27,7 @@ export default function TaskList() {
             {/* Task list box, overflowY makes it scrollable */}
             <Box sx = {{width: "100%", overflowY: "auto"}}>
                 {tasks.map((task, index)=> (
-                    <Task key={index} title={`Subtask ${index + 1}`}/>
+                    <Task key={index} title={task} onTitleChange={(newTitle) => updateTaskTitle(index, newTitle)}/>
                 ))}
             </Box>
 

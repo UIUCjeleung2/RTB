@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import "./BoardView.css";
 import BoardCard from "../../components/BoardCard.tsx";
 import Button from "@mui/material/Button";
-import { Typography, Box, IconButton } from "@mui/material";
+import { Typography, Box, IconButton, TextField } from "@mui/material";
 import Task from "../../components/Task.tsx";
 import AddTask from "../../components/AddTask.tsx";
 import ArrowUpward from "@mui/icons-material/ArrowUpward";
@@ -107,7 +107,10 @@ export default function BoardView() {
             <IconButton variant="outlined">
               <ArrowUpward sx={{color:"blue"}}/>
             </IconButton>
-            <Typography variant="h6" component="h2" sx={{flex: 1, textAlign: "center"}}>Task Name</Typography>
+            <TextField value = "Task Name" fullWidth>
+
+            </TextField>
+            {/* <Typography variant="h6" component="h2" sx={{flex: 1, textAlign: "center"}}>Task Name</Typography> */}
             <IconButton variant="outlined">
               <Check sx = {{color:"black"}}/>
             </IconButton>
