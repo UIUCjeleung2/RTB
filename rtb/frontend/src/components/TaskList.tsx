@@ -14,11 +14,11 @@ export default function TaskList() {
     };
 
     const updateTaskTitle = (index: number, newTitle: string) => {
-    setTasks(prev => {
-        const updatedTasks = [...prev];
-        updatedTasks[index] = newTitle;
-        return updatedTasks;
-    });
+        setTasks(prev => {
+            const updatedTasks = [...prev];
+            updatedTasks[index] = newTitle;
+            return updatedTasks;
+        });
     };
 
     return (
