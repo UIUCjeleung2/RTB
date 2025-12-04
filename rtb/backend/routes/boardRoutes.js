@@ -1,4 +1,6 @@
 import express from "express";
+import Task from "../models/Task.js";
+
 import {
   getAllBoards,
   getBoard,
@@ -11,6 +13,21 @@ import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
+router.patch("/tasks/:id/toggle-complete", async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+
+    if (!task) return res.status(404).json({ message: "Task not found" });
+
+    task.completed = !task.completed; // flip value
+    await task.save();
+
+    res.json(task);
+  } catch (err) {
+    console.error("Toggle complete error:", err);
+    res.status(500).json({ message: "Server error toggling task complete" });
+  }
+});
 // All routes require authentication
 router.use(auth);
 

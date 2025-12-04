@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
 import Card from '@mui/material/Card';
@@ -15,9 +16,17 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import LinearProgress from "@mui/material/LinearProgress";
+
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
 }
+
+declare const process: {
+  env: {
+    REACT_APP_BACKEND_URL: string;
+  };
+};
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -43,17 +52,45 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   ],
 }));
 
-export default function Task() {
+export default function Task({ taskId, completed: initialCompleted }) {
   const [expanded, setExpanded] = React.useState(false);
-  const [completed, setCompleted] = React.useState(false);
+  const [completed, setCompleted] = React.useState(initialCompleted);
+
+
+  const completionPercent = completed ? 100 : 0;
 
   const handleExpandClick = () => {
     setExpanded((prev) => !prev);
   };
 
-  const handleToggleComplete = () => {
-    setCompleted((prev) => !prev);
-  };
+  const handleToggleComplete = async () => {
+  // Instant UI toggle
+  setCompleted((prev) => !prev);
+  
+
+  try {
+    
+    const response = await fetch(
+      
+      `${process.env.REACT_APP_BACKEND_URL}/api/tasks/${taskId}/toggle-complete`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const updatedTask = await response.json();
+
+    // Sync with backend
+    setCompleted(updatedTask.completed);
+  } catch (err) {
+    console.error("Error toggling complete:", err);
+  }
+};
+
+  
 
   return (
     <Card sx={{ maxWidth: 345 }}>
@@ -72,6 +109,17 @@ export default function Task() {
         title="Shrimp and Chorizo Paella"
         subheader="September 14, 2016"
       />
+      
+
+      <CardContent sx={{ paddingTop: 0 }}>
+         <LinearProgress 
+          variant="determinate" 
+          value={completionPercent} 
+          sx={{ height: 8, borderRadius: 5, marginBottom: 2 }}
+      />
+
+      </CardContent>
+      
 
       <CardContent>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
