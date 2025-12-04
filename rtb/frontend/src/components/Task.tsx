@@ -16,6 +16,10 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -46,12 +50,33 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 export default function Task() {
+  
   const [expanded, setExpanded] = React.useState(false);
+
+  // ✅ controls whether the task is “completed”
+  const [completed, setCompleted] = React.useState(false);
+
+  // ✅ controls three-dot menu open/close
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
+  const isMenuOpen = Boolean(menuAnchorEl);
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
 
+  // ✅ toggle the checkmark
+  const handleToggleComplete = () => {
+    setCompleted((prev) => !prev);
+  };
+
+  // ✅ open/close three-dot menu
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
   return (
     <Card sx={{ maxWidth: 345 }}>
       <CardHeader
@@ -61,13 +86,37 @@ export default function Task() {
           </Avatar>
         }
         action={
-          <IconButton aria-label="settings">
+          <IconButton aria-label="task menu" onClick={handleMenuOpen}>
             <MoreVertIcon />
           </IconButton>
         }
         title="Shrimp and Chorizo Paella"
         subheader="September 14, 2016"
       />
+       <Menu
+        anchorEl={menuAnchorEl}
+        open={isMenuOpen}
+        onClose={handleMenuClose}
+      >
+        <MenuItem
+          onClick={() => {
+            // TODO: hook up real edit behavior later
+            console.log("Edit task clicked");
+            handleMenuClose();
+          }}
+        >
+          Edit task
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            // TODO: hook up real delete behavior later
+            console.log("Delete task clicked");
+            handleMenuClose();
+          }}
+        >
+          Delete task
+        </MenuItem>
+      </Menu>
       <CardContent>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           This impressive paella is a perfect party dish and a fun meal to cook
@@ -76,6 +125,13 @@ export default function Task() {
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
+        <IconButton aria-label="toggle complete" onClick={handleToggleComplete}>
+          {completed ? (
+            <CheckCircleIcon color="success" />
+          ) : (
+            <CheckCircleOutlineIcon />
+          )}
+        </IconButton>
         <IconButton aria-label="add to favorites">
           <FavoriteIcon />
         </IconButton>
