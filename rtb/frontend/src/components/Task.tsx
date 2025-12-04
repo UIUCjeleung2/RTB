@@ -57,9 +57,9 @@ export default function Task({title, onTitleChange} : TaskProps) {
 
   return (
     // The actual card
-    <Card sx={{ maxWidth: 345, p: 1 }}>
+    <Card sx={{ maxWidth: 345, p: 1, borderRadius: 5, flexShrink: 0}}>
 
-        <Box id="subtask" sx={{ border: DEBUG_BORDER, display: 'flex', flexDirection: "column", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <Box id="subtask" sx={{display: 'flex', flexDirection: "column", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
 
           {/* If we wanna rename the Task, a Textfield will appear */}
           <Box id="header" sx= {{display: "flex", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
@@ -86,7 +86,7 @@ export default function Task({title, onTitleChange} : TaskProps) {
             </Menu>
           </Box>
 
-          <Box id="subtasklist">
+          <Box id="subtasklist" sx = {{display: "flex", width: "88%"}}>
               {subtasks.length > 0 && (
                 <SubtaskList
                   subtasks={subtasks}

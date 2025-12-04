@@ -25,7 +25,7 @@ export default function TaskList() {
         <Box sx = {{display: "flex", flexDirection: "column", height: "88%", width: "100%"}}>
             
             {/* Task list box, overflowY makes it scrollable */}
-            <Box sx = {{width: "100%", overflowY: "auto"}}>
+            <Box sx = {{display: "flex", flexDirection: "column", width: "100%", overflowY: "auto", gap: 1}}>
                 {tasks.map((task, index)=> (
                     <Task key={index} title={task} onTitleChange={(newTitle) => updateTaskTitle(index, newTitle)}/>
                 ))}

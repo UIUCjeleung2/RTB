@@ -71,7 +71,7 @@ export default function BoardView() {
   }
 
   return (
-    <div className="board-view">
+    <div className="board-view" style={{backgroundColor: "#282c34"}}>
 
       {/* This is the navbar at the top of the page*/}
       <div className="board-navbar">        
