@@ -1,10 +1,10 @@
-// Subtask card within the board card. This is just a copy
-// of MUI's Card component, so it is subject to change.
-
 import * as React from 'react';
 import Card from '@mui/material/Card';
+import CardActions from "@mui/material/CardActions";
 import CardHeader from '@mui/material/CardHeader';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {Typography, Box, Menu, MenuItem, TextField, ClickAwayListener} from "@mui/material";
 import EditableText from './EditableText.tsx';
@@ -19,7 +19,12 @@ export default function Task({title, onTitleChange} : TaskProps) {
 
   // Handles the opening and closing of the Menu on the three dots
   const [anchorElement, setAnchorElement] = React.useState<null | HTMLElement>(null);
+  const [completed, setCompleted] = React.useState(false);
   const open = Boolean(anchorElement);
+
+  const handleToggleComplete = () => {
+    setCompleted((prev) => !prev);
+  };
 
   // Handlers for those actions
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -68,6 +73,17 @@ export default function Task({title, onTitleChange} : TaskProps) {
             <MenuItem onClick={handleClose}>Delete Step</MenuItem>
             <MenuItem onClick={handleClose}>Change Color</MenuItem>
           </Menu>
+
+          <CardActions disableSpacing>
+            <IconButton aria-label="toggle complete" onClick={handleToggleComplete}>
+              {completed ? (
+                <CheckCircleIcon color="success" />
+              ) : (
+                <CheckCircleOutlineIcon />
+              )}
+            </IconButton>
+          </CardActions>
+
         </Box>
 </Card>
 
