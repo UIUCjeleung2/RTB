@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import Card from '@mui/material/Card';
 import CardActions from "@mui/material/CardActions";
@@ -5,6 +6,8 @@ import CardHeader from '@mui/material/CardHeader';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import LinearProgress from "@mui/material/LinearProgress";
+import { CardContent } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {Typography, Box, Menu, MenuItem, TextField, ClickAwayListener} from "@mui/material";
 import EditableText from './EditableText.tsx';
@@ -15,6 +18,12 @@ interface TaskProps {
   onTitleChange: (newTitle: string) => void;
 }
 
+declare const process: {
+  env: {
+    REACT_APP_BACKEND_URL: string;
+  };
+};
+
 export default function Task({title, onTitleChange} : TaskProps) {
 
   const DEBUG_BORDER = "1px solid red";
@@ -23,10 +32,37 @@ export default function Task({title, onTitleChange} : TaskProps) {
   const [anchorElement, setAnchorElement] = React.useState<null | HTMLElement>(null);
   const [completed, setCompleted] = React.useState(false);
   const open = Boolean(anchorElement);
+  const completionPercent = completed ? 100 : 0;
 
-  const handleToggleComplete = () => {
-    setCompleted((prev) => !prev);
-  };
+
+  // const handleToggleComplete = async () => {
+  //   // Instant UI toggle
+  //   setCompleted((prev) => !prev);
+    
+
+  //   try {
+      
+  //     const response = await fetch(
+        
+  //       `${process.env.REACT_APP_BACKEND_URL}/api/tasks/${taskId}/toggle-complete`,
+  //       {
+  //         method: "PATCH",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
+
+  //     const updatedTask = await response.json();
+
+  //     // Sync with backend
+  //     setCompleted(updatedTask.completed);
+  //   } catch (err) {
+  //     console.error("Error toggling complete:", err);
+  //   }
+  // };
+
+  
 
   // Handlers for those actions
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -59,7 +95,15 @@ export default function Task({title, onTitleChange} : TaskProps) {
     // The actual card
     <Card sx={{ maxWidth: 345, p: 1, borderRadius: 5, flexShrink: 0}}>
 
-        <Box id="subtask" sx={{display: 'flex', flexDirection: "column", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+      <Box id="subtask" sx={{display: 'flex', flexDirection: "column", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+      <CardContent sx={{ paddingTop: 0 }}>
+         <LinearProgress 
+          variant="determinate" 
+          value={completionPercent} 
+          sx={{ height: 8, borderRadius: 5, marginBottom: 2 }}
+      />
+      </CardContent>
+      
 
           {/* If we wanna rename the Task, a Textfield will appear */}
           <Box id="header" sx= {{display: "flex", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>

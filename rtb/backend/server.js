@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import boardRoutes from "./routes/boardRoutes.js";
+app.use("/api/tasks", taskRoutes);
+
+
 
 dotenv.config();
 const app = express();
