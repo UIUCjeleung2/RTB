@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import boardRoutes from "./routes/boardRoutes.js";
-app.use("/api/tasks", taskRoutes);
+import taskRoutes from "./routes/taskRoutes.js";
 
 
 
@@ -28,6 +28,7 @@ app.use(express.json());
 // Routes
 app.use("/auth", authRoutes);
 app.use("/api/boards", boardRoutes);
+app.use("/api/tasks", taskRoutes);
 
 // Test route
 app.get("/", (req, res) => {
