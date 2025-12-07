@@ -111,12 +111,19 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
 
           {/* If we wanna rename the Task, a Textfield will appear */}
           <Box id="header" sx= {{display: "flex", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <Box
+            onClick={() => {
+              if (!isEditing) setIsEditing(true);
+            }}
+            sx={{ cursor: 'pointer', flexGrow: 1 }}
+          >
             <EditableText
-              title = {title}
+              title={title}
               onTitleChange={onTitleChange}
               isEditing={isEditing}
               setIsEditing={setIsEditing}
-            ></EditableText>
+            />
+          </Box>
 
             <IconButton aria-label="settings" onClick={handleOpen}>
               <MoreVertIcon />
