@@ -18,14 +18,14 @@ export default function SubtaskList({subtasks, completed, onToggle}: SubtaskList
             {subtasks.map((task, index) => (
                 <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", overflowY: "auto", mb: index !== subtasks.length - 1 ? -1 : 0}}>
 
-                    <Box key={index} sx={{ display: "flex", alignItems: "center" }}>
+                    <Box key={`Header ${index}`} sx={{ display: "flex", alignItems: "center" }}>
                         <IconButton aria-label="toggle complete" onClick={() => onToggle(index)}>
                             {completed[index] ? <CheckCircleIcon color="success"/> : <CheckCircleOutlineIcon />}
                         </IconButton>
                         <Typography variant="body1" color="black">{task}</Typography>                        
                     </Box>
 
-                    <Box key={index} sx={{ display: "flex", alignItems: "center" }}>
+                    <Box key={`Tail ${index}`} sx={{ display: "flex", alignItems: "center" }}>
                         <IconButton aria-label="toggle complete" onClick={() => onToggle(index)}>
                             {completed[index] ? <Delete/> : <Delete/>}
                         </IconButton>

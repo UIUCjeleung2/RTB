@@ -16,7 +16,12 @@ import SubtaskList from './SubtaskList.tsx';
 interface TaskProps {
   title: string;
   onTitleChange: (newTitle: string) => void;
+  onSubtaskCreate: () => void;
+  onSubtaskCheck: () => void;
+  onSubtaskUncheck: () => void;
 }
+
+// I also have to pass the above functions to the SubtaskList, so that I can activate them
 
 declare const process: {
   env: {
@@ -24,7 +29,7 @@ declare const process: {
   };
 };
 
-export default function Task({title, onTitleChange} : TaskProps) {
+export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCheck, onSubtaskUncheck} : TaskProps) {
 
   const DEBUG_BORDER = "1px solid red";
 
@@ -89,20 +94,19 @@ export default function Task({title, onTitleChange} : TaskProps) {
   const handleAddStep = () => {
     setSubtasks(prev => [...prev, `Subtask ${subtasks.length}`]);
     setCompletedSubtasks(prev => [...prev, false]);
+    onSubtaskCreate();
   }
+
+  React.useEffect(() => {
+    console.log(subtasks);
+    console.log(completedSubtasks);
+  }, [subtasks, completedSubtasks]);
 
   return (
     // The actual card
     <Card sx={{ maxWidth: 345, p: 1, borderRadius: 5, flexShrink: 0}}>
 
       <Box id="subtask" sx={{display: 'flex', flexDirection: "column", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-      <CardContent sx={{ paddingTop: 0 }}>
-         <LinearProgress 
-          variant="determinate" 
-          value={completionPercent} 
-          sx={{ height: 8, borderRadius: 5, marginBottom: 2 }}
-      />
-      </CardContent>
       
 
           {/* If we wanna rename the Task, a Textfield will appear */}
@@ -135,10 +139,16 @@ export default function Task({title, onTitleChange} : TaskProps) {
                 <SubtaskList
                   subtasks={subtasks}
                   completed={completedSubtasks}
-                  onToggle={(index: number) =>
-                    setCompletedSubtasks(prev =>
-                      prev.map((val, i) => (i === index ? !val : val))
-                    )
+                  onToggle={(index: number) => {
+                      if (completedSubtasks[index] === false) {
+                        onSubtaskCheck();
+                      } else {
+                        onSubtaskUncheck();                        
+                      }
+                      setCompletedSubtasks(prev =>
+                        prev.map((val, i) => (i === index ? !val : val))
+                      );
+                    }
                   }
                 />
               )}
