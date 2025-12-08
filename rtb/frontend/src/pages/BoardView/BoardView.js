@@ -15,7 +15,14 @@ export default function BoardView() {
   const navigate = useNavigate();
   const [board, setBoard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [layer, setLayer] = useState(0);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  
+  const onClickSubtask = () => {
+    setLayer(layer + 1);
+    console.log("Clicked!");
+    console.log(`translateX(${-layer * 4}px) translateY(${layer * 4}px) translateZ(${-layer}px)`)
+  }
 
   useEffect(() => {
     fetchBoard();
@@ -92,7 +99,7 @@ export default function BoardView() {
 
       {/* This is the actual board stuff */}
 
-      <BoardCard sx = {{minWidth: 345}}>
+      <BoardCard sx = {{minWidth: 345, transform: `translateX(${-layer * 4}px) translateY(${layer * 4}px) translateZ(${-layer}px)`, opacity: Math.max(0, 1 - layer * 0.33)}}>
         <Box 
           sx={{
             display: 'flex',               // 1. Enable Flexbox
@@ -122,7 +129,7 @@ export default function BoardView() {
           <Typography variant="body1" color="black">+ Add Task</Typography>
         </AddTask> */}
 
-        <TaskList/>
+        <TaskList onClickSubtask={onClickSubtask}/>
 
       </BoardCard>
 

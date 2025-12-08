@@ -5,7 +5,11 @@ import Task from "./Task.tsx";
 // The TaskList holds all the task cards in a scrollable area
 // and fixes the Add Task button at the bottom.
 
-export default function TaskList() {
+interface TaskListProps {
+    onClickSubtask: Function;
+}
+
+export default function TaskList({onClickSubtask} : TaskListProps) {
     const [tasks, setTasks] = useState<string[]>([]);
 
     // Function that the click button calls
@@ -68,6 +72,7 @@ export default function TaskList() {
                     <Task key={index} title={task} onTitleChange={(newTitle) => updateTaskTitle(index, newTitle)}
                           onSubtaskCreate={() => onSubtaskCreate()} onSubtaskCheck={() => onSubtaskCheck()} 
                           onSubtaskUncheck={() => onSubtaskUncheck()} onSubtaskDelete={() => onSubtaskDelete()}
+                          onClickSubtask={() => onClickSubtask()}
                     />
                 ))}
             </Box>

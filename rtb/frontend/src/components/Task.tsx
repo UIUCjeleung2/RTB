@@ -20,6 +20,7 @@ interface TaskProps {
   onSubtaskCheck: () => void;
   onSubtaskUncheck: () => void;
   onSubtaskDelete: () => void;
+  onClickSubtask: () => void;
 }
 
 // I also have to pass the above functions to the SubtaskList, so that I can activate them
@@ -30,7 +31,7 @@ declare const process: {
   };
 };
 
-export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCheck, onSubtaskUncheck, onSubtaskDelete} : TaskProps) {
+export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCheck, onSubtaskUncheck, onSubtaskDelete, onClickSubtask} : TaskProps) {
 
   const DEBUG_BORDER = "1px solid red";
 
@@ -72,6 +73,7 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
 
   // Handlers for those actions
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
     setAnchorElement(event.currentTarget);
   };
 
@@ -105,26 +107,19 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
 
   return (
     // The actual card
-    <Card sx={{ maxWidth: 345, p: 1, borderRadius: 5, flexShrink: 0}}>
+    <Card sx={{ maxWidth: 345, p: 1, borderRadius: 5, flexShrink: 0}} onClick={onClickSubtask}>
 
       <Box id="subtask" sx={{display: 'flex', flexDirection: "column", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
       
 
           {/* If we wanna rename the Task, a Textfield will appear */}
           <Box id="header" sx= {{display: "flex", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          <Box
-            onClick={() => {
-              if (!isEditing) setIsEditing(true);
-            }}
-            sx={{ cursor: 'pointer', flexGrow: 1 }}
-          >
-            <EditableText
-              title={title}
-              onTitleChange={onTitleChange}
-              isEditing={isEditing}
-              setIsEditing={setIsEditing}
-            />
-          </Box>
+          <EditableText
+            title={title}
+            onTitleChange={onTitleChange}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+          />
 
             <IconButton aria-label="settings" onClick={handleOpen}>
               <MoreVertIcon />
@@ -176,4 +171,12 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
 </Card>
 
   );
+}
+
+function enterSubtask() {
+  // TODO:
+  // - Spawn new BoardCard with relevant data
+  // - Push other things to the back
+
+  console.log("Clicked")
 }
