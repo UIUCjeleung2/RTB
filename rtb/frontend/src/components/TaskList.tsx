@@ -10,7 +10,7 @@ interface TaskListProps {
     onClickSubtask: Function;
 }
 
-export default function TaskList() {
+export default function TaskList({onClickSubtask} : TaskListProps) {
     const {boardId} = useParams();
 
     const token = localStorage.getItem("token");
