@@ -27,7 +27,8 @@ const taskSchema = new mongoose.Schema({
   completed: {
   type: Boolean,
   default: false,
-  }
+  },
+
 });
 
 // Index for querying tasks by board

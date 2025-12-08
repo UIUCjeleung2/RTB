@@ -8,18 +8,49 @@ import Task from "./Task.tsx";
 
 export default function TaskList() {
     const {boardId} = useParams();
+
+    const token = localStorage.getItem("token");
+    const headers: HeadersInit = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `${token}` } : {}),
+    };
+
+    // Instead of an empty list of strings, I want to fetch all the tasks from the backend
+    // This will be called when the component mounts.
+
+    
+
+
     const [tasks, setTasks] = useState<string[]>([]);
+
+    console.log("MOUNTING");
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const response = await fetch(`http://localhost:5001/api/boards/${boardId}`, {
+                    method: "GET",
+                    headers
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data.tasks);
+                    // assuming backend returns an array of task titles
+                    setTasks(data.tasks.map((t: any) => t.title));
+                } else {
+                    console.error("Failed to fetch tasks");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchTasks();
+    }, [boardId]);
 
     // Function that the click button calls
     const addTask = async () => {
         setTasks(prev => [...prev, `Subtask ${prev.length + 1}`]);
 
-        const token = localStorage.getItem("token");
-
-        const headers: HeadersInit = {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `${token}` } : {}),
-        };
 
         const response = await fetch(
             `http://localhost:5001/api/boards/${boardId}/addTask`,
