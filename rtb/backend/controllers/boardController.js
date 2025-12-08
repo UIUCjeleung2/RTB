@@ -191,6 +191,8 @@ export const addTaskToBoard = async (req, res) => {
     board.tasks.push(task._id);
     await board.save();
 
+    res.status(201).json(task);
+
   } catch (err) {
     console.error("Add task error", err);
     res.status(500).json({ message: "Server error", error: err.message });

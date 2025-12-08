@@ -53,17 +53,18 @@ export default function TaskList({onClickSubtask} : TaskListProps) {
 
     // Function that the click button calls
     const addTask = async () => {
-        setTasks(prev => [...prev, `Subtask ${prev.length + 1}`]);
-
-
+        
         const response = await fetch(
             `http://localhost:5001/api/boards/${boardId}/addTask`,
             {
-            method: "POST", // or PATCH
-            headers,
-            body: JSON.stringify({})
+                method: "POST", // or PATCH
+                headers,
+                body: JSON.stringify({})
             }
         );
+        
+        const data = await response.json();
+        setTasks(prev => [...prev, data]);
 
         if (response.ok) {
             console.log("Response was OK for adding tasks");

@@ -18,8 +18,8 @@ export default function BoardView() {
   const [layer, setLayer] = useState(0);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   
-  const onClickSubtask = (taskID) => {
-    console.log(taskID);
+  const onClickSubtask = (taskId) => {
+    console.log(taskId);
   }
 
   useEffect(() => {
@@ -55,6 +55,38 @@ export default function BoardView() {
       setLoading(false);
     }
   };
+
+  const fetchTaskBoard = async(taskId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/${taskId}`,
+        {
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        // TODO: Make this update board list instead of board
+        
+        //setBoard(data.board);
+        console.log(data.board);
+      } else {
+        console.error("Failed to fetch board");
+        alert("Board not found");
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Error fetching board:", error);
+      alert("Error loading board");
+      navigate("/dashboard");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleBackToDashboard = () => {
     navigate("/dashboard");
