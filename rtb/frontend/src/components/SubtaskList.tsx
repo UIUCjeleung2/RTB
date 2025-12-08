@@ -8,10 +8,9 @@ interface SubtaskListProps {
     subtasks: string[];
     completed: boolean[];
     onToggle: (index: number) => void;
-    onDelete: (index: number) => void;
 }
 
-export default function SubtaskList({subtasks, completed, onToggle, onDelete}: SubtaskListProps) {
+export default function SubtaskList({subtasks, completed, onToggle}: SubtaskListProps) {
 
     return (
         <Box sx={{ display: "flex", bgcolor: "#d6d6d6ff", borderRadius: 5, flexDirection: "column", width: "100%"}}>
@@ -25,9 +24,9 @@ export default function SubtaskList({subtasks, completed, onToggle, onDelete}: S
                         </IconButton>
                         <Typography variant="body1" color="black">{task}</Typography>                        
                     </Box>
-                    {/* I have to do something with the index that is passed, like go to the subtask[index] and delete it*/}
+
                     <Box key={`Tail ${index}`} sx={{ display: "flex", alignItems: "center" }}>
-                        <IconButton aria-label="toggle complete" onClick={() => onDelete(index)}>
+                        <IconButton aria-label="toggle complete" onClick={() => onToggle(index)}>
                             {completed[index] ? <Delete/> : <Delete/>}
                         </IconButton>
                     </Box>

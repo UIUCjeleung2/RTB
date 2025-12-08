@@ -11,6 +11,11 @@ const taskSchema = new mongoose.Schema({
     ref: "Board",
     required: true
   },
+  parentTask: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Task",
+    default: null
+  },
   status: {
     type: String,
     enum: ["todo", "in-progress", "done"],
@@ -30,7 +35,8 @@ const taskSchema = new mongoose.Schema({
   }
 });
 
-// Index for querying tasks by board
-taskSchema.index({ board: 1, position: 1 });
+// Indexes for efficient queries
+taskSchema.index({ board: 1, parentTask: 1, position: 1 });
+taskSchema.index({ parentTask: 1 });
 
 export default mongoose.model("Task", taskSchema);

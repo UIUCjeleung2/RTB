@@ -14,8 +14,13 @@ export default function BoardView() {
   const { boardId } = useParams();
   const navigate = useNavigate();
   const [board, setBoard] = useState(null);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+  useEffect(() => {
+    fetchBoard();
+  }, [boardId]);
 
   useEffect(() => {
     fetchBoard();
@@ -36,6 +41,22 @@ export default function BoardView() {
       if (response.ok) {
         const data = await response.json();
         setBoard(data.board);
+        localStorage.setItem("boardId", boardId);
+        
+        // Fetch tasks for this board
+        const tasksResponse = await fetch(
+          `http://localhost:5001/api/tasks/board/${boardId}`,
+          {
+            headers: {
+              Authorization: token,
+            },
+          }
+        );
+        
+        if (tasksResponse.ok) {
+          const tasksData = await tasksResponse.json();
+          setTasks(tasksData.tasks);
+        }
       } else {
         console.error("Failed to fetch board");
         alert("Board not found");
@@ -122,7 +143,7 @@ export default function BoardView() {
           <Typography variant="body1" color="black">+ Add Task</Typography>
         </AddTask> */}
 
-        <TaskList/>
+        <TaskList boardId={boardId} tasks={tasks} onTasksChange={setTasks} />
 
       </BoardCard>
 
