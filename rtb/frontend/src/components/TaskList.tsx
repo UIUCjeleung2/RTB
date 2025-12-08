@@ -29,7 +29,7 @@ export default function TaskList() {
         console.log(completed, "updated");
         var yes = numberOfSubtasks === 0 ? 0 : (completed / numberOfSubtasks) * 100;
         console.log(yes, "result");
-        console.log(numberOfSubtasks);
+        console.log(numberOfSubtasks, "numberOfSubtasks");
     }, [completed]);
 
     // Whenever we create a subtask in SubtaskList, add it
@@ -44,6 +44,10 @@ export default function TaskList() {
 
     const onSubtaskUncheck = () => {
         setCompleted(completed - 1);
+    }
+
+    const onSubtaskDelete = () => {
+        setNumberOfSubtasks(numberOfSubtasks - 1);
     }
 
     return (
@@ -62,7 +66,8 @@ export default function TaskList() {
             <Box sx = {{display: "flex", flexDirection: "column", width: "100%", overflowY: "auto", gap: 1}}>
                 {tasks.map((task, index)=> (
                     <Task key={index} title={task} onTitleChange={(newTitle) => updateTaskTitle(index, newTitle)}
-                          onSubtaskCreate={() => onSubtaskCreate()} onSubtaskCheck={() => onSubtaskCheck()} onSubtaskUncheck={() => onSubtaskUncheck()}
+                          onSubtaskCreate={() => onSubtaskCreate()} onSubtaskCheck={() => onSubtaskCheck()} 
+                          onSubtaskUncheck={() => onSubtaskUncheck()} onSubtaskDelete={() => onSubtaskDelete()}
                     />
                 ))}
             </Box>

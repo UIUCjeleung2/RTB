@@ -19,6 +19,7 @@ interface TaskProps {
   onSubtaskCreate: () => void;
   onSubtaskCheck: () => void;
   onSubtaskUncheck: () => void;
+  onSubtaskDelete: () => void;
 }
 
 // I also have to pass the above functions to the SubtaskList, so that I can activate them
@@ -29,7 +30,7 @@ declare const process: {
   };
 };
 
-export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCheck, onSubtaskUncheck} : TaskProps) {
+export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCheck, onSubtaskUncheck, onSubtaskDelete} : TaskProps) {
 
   const DEBUG_BORDER = "1px solid red";
 
@@ -157,6 +158,14 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
                       );
                     }
                   }
+                  onDelete={(index: number) => {
+                    setSubtasks(prev => prev.filter((_, i) => i !== index));
+                    setCompletedSubtasks(prev => prev.filter((_, i) => i !== index));
+                    if (completedSubtasks[index] === true) {
+                      onSubtaskUncheck();
+                    }
+                    onSubtaskDelete();
+                  }}
                 />
               )}
 
