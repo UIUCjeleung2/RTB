@@ -7,13 +7,15 @@ import {Box} from "@mui/material";
 
 
 const BoardCard = styled(Box)(({theme}) => ({
-    position: 'absolute',
-    top: 92,
-    left: 89,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    marginTop: 25,
     width: "fit-content",
     height: 500,
-    outline: '2px solid green',
-    backgroundColor: "#b8b6b6ff",
+    backgroundColor: "#F5F5F5",
+    outline: '1px solid #D2D2D2',
+    borderRadius: 20,
+    boxShadow: '-1px 4px 3px 0px #00000022',
 
     // --- FLEXBOX CHANGES ---
     display: 'flex',
