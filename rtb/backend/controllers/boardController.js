@@ -166,3 +166,33 @@ export const toggleArchiveBoard = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
+
+// Add task to board
+export const addTaskToBoard = async (req, res) => {
+  try {
+    const {boardId} = req.params;
+    const userId = req.user.id;
+
+    const board = await Board.findOne({_id: boardId, owner: userId});
+
+    if (!board) {
+      return res.status(404).json({message: "Board not found"});
+    }
+
+    const task = await Task.create({
+      title: `Subtask ${board.tasks.length}`,
+      board: boardId,
+      status: "todo",
+      position: board.tasks.length,
+      completed: false
+    });
+
+    board.tasks.push(task._id);
+    await board.save();
+
+  } catch (err) {
+    console.error("Add task error", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+}

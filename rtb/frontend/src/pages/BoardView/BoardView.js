@@ -78,7 +78,7 @@ export default function BoardView() {
   }
 
   return (
-    <div className="board-view" style={{backgroundColor: "#282c34"}}>
+    <div className="board-view" style={{backgroundColor: "#282c34", zIndex: -1}}>
 
       {/* This is the navbar at the top of the page*/}
       <div className="board-navbar">        
@@ -99,6 +99,10 @@ export default function BoardView() {
 
       {/* This is the actual board stuff */}
 
+
+
+        
+
       <BoardCard sx = {{minWidth: 345, transform: `translateX(${-layer * 4}px) translateY(${layer * 4}px) translateZ(${-layer}px)`, opacity: Math.max(0, 1 - layer * 0.33)}}>
         <Box 
           sx={{
@@ -109,12 +113,14 @@ export default function BoardView() {
             p: 1,                          // Adds a little padding around the whole group
             border: '1px solid #ccc',    // Just to visualize the container boundaries
             width: "95%"
+
+            // We gotta figure out how to make BoardCards appear on top of each other
           }}
         >
             <IconButton variant="outlined">
               <ArrowUpward sx={{color:"blue"}}/>
             </IconButton>
-            <TextField value = "Task Name" fullWidth>
+            <TextField value = {board.title} fullWidth>
 
             </TextField>
             {/* <Typography variant="h6" component="h2" sx={{flex: 1, textAlign: "center"}}>Task Name</Typography> */}
@@ -132,6 +138,11 @@ export default function BoardView() {
         <TaskList onClickSubtask={onClickSubtask}/>
 
       </BoardCard>
+
+
+
+
+
 
       {/* <div className="board-content">
         <div className="board-info-card">

@@ -8,6 +8,7 @@ import {
   updateBoard,
   deleteBoard,
   toggleArchiveBoard,
+  addTaskToBoard,
 } from "../controllers/boardController.js";
 import auth from "../middleware/auth.js";
 
@@ -48,5 +49,7 @@ router.delete("/:boardId", deleteBoard);
 
 // Archive/unarchive board
 router.patch("/:boardId/archive", toggleArchiveBoard);
+
+router.post("/:boardId/addTask", addTaskToBoard);
 
 export default router;

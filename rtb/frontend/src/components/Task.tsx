@@ -132,7 +132,6 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
             >
               <MenuItem onClick={handleRename}>Rename</MenuItem>
               <MenuItem onClick={handleAddStep}>Add Step</MenuItem>
-              <MenuItem onClick={handleClose}>Delete Step</MenuItem>
               <MenuItem onClick={handleClose}>Change Color</MenuItem>
             </Menu>
           </Box>

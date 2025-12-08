@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Typography, Button, Box, LinearProgress } from "@mui/material";
 import Task from "./Task.tsx";
 
@@ -9,12 +10,67 @@ interface TaskListProps {
     onClickSubtask: Function;
 }
 
-export default function TaskList({onClickSubtask} : TaskListProps) {
+export default function TaskList() {
+    const {boardId} = useParams();
+
+    const token = localStorage.getItem("token");
+    const headers: HeadersInit = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `${token}` } : {}),
+    };
+
+    // Instead of an empty list of strings, I want to fetch all the tasks from the backend
+    // This will be called when the component mounts.
+
+    
+
+
     const [tasks, setTasks] = useState<string[]>([]);
 
+    console.log("MOUNTING");
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const response = await fetch(`http://localhost:5001/api/boards/${boardId}`, {
+                    method: "GET",
+                    headers
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data.tasks);
+                    // assuming backend returns an array of task titles
+                    setTasks(data.tasks.map((t: any) => t.title));
+                } else {
+                    console.error("Failed to fetch tasks");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchTasks();
+    }, [boardId]);
+
     // Function that the click button calls
-    const addTask = () => {
+    const addTask = async () => {
         setTasks(prev => [...prev, `Subtask ${prev.length + 1}`]);
+
+
+        const response = await fetch(
+            `http://localhost:5001/api/boards/${boardId}/addTask`,
+            {
+            method: "POST", // or PATCH
+            headers,
+            body: JSON.stringify({})
+            }
+        );
+
+        if (response.ok) {
+            console.log("Response was OK for adding tasks");
+        } else {
+            console.log("Response was NOT OK for adding tasks");
+        }
+
     };
 
     const updateTaskTitle = (index: number, newTitle: string) => {
@@ -36,8 +92,9 @@ export default function TaskList({onClickSubtask} : TaskListProps) {
         console.log(numberOfSubtasks, "numberOfSubtasks");
     }, [completed]);
 
+
     // Whenever we create a subtask in SubtaskList, add it
-    const onSubtaskCreate = () => {
+    const onSubtaskCreate = async () => {
         setNumberOfSubtasks(numberOfSubtasks + 1);
     }
 
