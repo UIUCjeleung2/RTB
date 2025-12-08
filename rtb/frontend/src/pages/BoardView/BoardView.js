@@ -71,7 +71,7 @@ export default function BoardView() {
   }
 
   return (
-    <div className="board-view" style={{backgroundColor: "#282c34"}}>
+    <div className="board-view" style={{backgroundColor: "#282c34", zIndex: -1}}>
 
       {/* This is the navbar at the top of the page*/}
       <div className="board-navbar">        
@@ -92,7 +92,9 @@ export default function BoardView() {
 
       {/* This is the actual board stuff */}
 
-      <BoardCard sx = {{minWidth: 345}}>
+      {/* There */}
+
+      <BoardCard sx = {{minWidth: 345, top: 90, opacity: 0.5}}>
         <Box 
           sx={{
             display: 'flex',               // 1. Enable Flexbox
@@ -102,12 +104,14 @@ export default function BoardView() {
             p: 1,                          // Adds a little padding around the whole group
             border: '1px solid #ccc',    // Just to visualize the container boundaries
             width: "95%"
+
+            // We gotta figure out how to make BoardCards appear on top of each other
           }}
         >
             <IconButton variant="outlined">
               <ArrowUpward sx={{color:"blue"}}/>
             </IconButton>
-            <TextField value = "Task Name" fullWidth>
+            <TextField value = {board.title} fullWidth>
 
             </TextField>
             {/* <Typography variant="h6" component="h2" sx={{flex: 1, textAlign: "center"}}>Task Name</Typography> */}
@@ -125,6 +129,48 @@ export default function BoardView() {
         <TaskList/>
 
       </BoardCard>
+
+        
+
+      <BoardCard sx = {{minWidth: 345, left: 120}}>
+        <Box 
+          sx={{
+            display: 'flex',               // 1. Enable Flexbox
+            flexDirection: 'row',          // (Optional but explicit) Arrange children in a row
+            alignItems: 'stretch',         // Vertically centers the items (button, text, button)
+            gap: 1,                        // Adds spacing between the children (equivalent to theme.spacing(1))
+            p: 1,                          // Adds a little padding around the whole group
+            border: '1px solid #ccc',    // Just to visualize the container boundaries
+            width: "95%"
+
+            // We gotta figure out how to make BoardCards appear on top of each other
+          }}
+        >
+            <IconButton variant="outlined">
+              <ArrowUpward sx={{color:"blue"}}/>
+            </IconButton>
+            <TextField value = {board.title} fullWidth>
+
+            </TextField>
+            {/* <Typography variant="h6" component="h2" sx={{flex: 1, textAlign: "center"}}>Task Name</Typography> */}
+            <IconButton variant="outlined">
+              <Check sx = {{color:"black"}}/>
+            </IconButton>
+        </Box>
+        
+        {/* The actual task card */}
+        {/* <Task/>
+        <AddTask>
+          <Typography variant="body1" color="black">+ Add Task</Typography>
+        </AddTask> */}
+
+        <TaskList/>
+
+      </BoardCard>
+
+
+
+
 
       {/* <div className="board-content">
         <div className="board-info-card">

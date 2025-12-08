@@ -111,20 +111,23 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
       
 
           {/* If we wanna rename the Task, a Textfield will appear */}
-          <Box id="header" sx= {{display: "flex", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          <Box
+          <Box id="header" sx= {{display: "flex", justifyContent: 'space-between', alignItems: 'center', width: '100%' 
+                                
+
+          }}>
+          {/* <Box
             onClick={() => {
               if (!isEditing) setIsEditing(true);
             }}
             sx={{ cursor: 'pointer', flexGrow: 1 }}
-          >
+          > */}
             <EditableText
               title={title}
               onTitleChange={onTitleChange}
               isEditing={isEditing}
               setIsEditing={setIsEditing}
             />
-          </Box>
+          {/* </Box> */}
 
             <IconButton aria-label="settings" onClick={handleOpen}>
               <MoreVertIcon />
@@ -137,7 +140,6 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
             >
               <MenuItem onClick={handleRename}>Rename</MenuItem>
               <MenuItem onClick={handleAddStep}>Add Step</MenuItem>
-              <MenuItem onClick={handleClose}>Delete Step</MenuItem>
               <MenuItem onClick={handleClose}>Change Color</MenuItem>
             </Menu>
           </Box>

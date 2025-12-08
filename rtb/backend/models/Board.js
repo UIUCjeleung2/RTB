@@ -34,7 +34,14 @@ const boardSchema = new mongoose.Schema({
   lastAccessedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+
+  tasks : [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Task"
+    }
+  ]
 });
 
 // Update updatedAt on save

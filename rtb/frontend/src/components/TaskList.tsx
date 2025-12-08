@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Typography, Button, Box, LinearProgress } from "@mui/material";
 import Task from "./Task.tsx";
 
@@ -6,11 +7,35 @@ import Task from "./Task.tsx";
 // and fixes the Add Task button at the bottom.
 
 export default function TaskList() {
+    const {boardId} = useParams();
     const [tasks, setTasks] = useState<string[]>([]);
 
     // Function that the click button calls
-    const addTask = () => {
+    const addTask = async () => {
         setTasks(prev => [...prev, `Subtask ${prev.length + 1}`]);
+
+        const token = localStorage.getItem("token");
+
+        const headers: HeadersInit = {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `${token}` } : {}),
+        };
+
+        const response = await fetch(
+            `http://localhost:5001/api/boards/${boardId}/addTask`,
+            {
+            method: "POST", // or PATCH
+            headers,
+            body: JSON.stringify({})
+            }
+        );
+
+        if (response.ok) {
+            console.log("Response was OK for adding tasks");
+        } else {
+            console.log("Response was NOT OK for adding tasks");
+        }
+
     };
 
     const updateTaskTitle = (index: number, newTitle: string) => {
@@ -32,8 +57,9 @@ export default function TaskList() {
         console.log(numberOfSubtasks, "numberOfSubtasks");
     }, [completed]);
 
+
     // Whenever we create a subtask in SubtaskList, add it
-    const onSubtaskCreate = () => {
+    const onSubtaskCreate = async () => {
         setNumberOfSubtasks(numberOfSubtasks + 1);
     }
 
