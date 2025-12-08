@@ -123,6 +123,31 @@ export default function TaskList({ boardId, tasks = [], onTasksChange }: TaskLis
         });
     };
 
+    // Refresh tasks when a subtask is added/deleted
+    const handleTasksRefresh = async () => {
+        if (!boardId) return;
+
+        try {
+            const response = await fetch(
+                `http://localhost:5001/api/tasks/board/${boardId}`,
+                {
+                    headers: {
+                        Authorization: token,
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setLocalTasks(data.tasks);
+                calculateProgress(data.tasks);
+                onTasksChange?.(data.tasks);
+            }
+        } catch (error) {
+            console.error("Error refreshing tasks:", error);
+        }
+    };
+
     const onSubtaskCreate = () => {
         setNumberOfSubtasks(numberOfSubtasks + 1);
     };
@@ -164,6 +189,7 @@ export default function TaskList({ boardId, tasks = [], onTasksChange }: TaskLis
                         onSubtaskCreate={onSubtaskCreate}
                         onSubtaskCheck={onSubtaskCheck}
                         onSubtaskUncheck={onSubtaskUncheck}
+                        onTasksChange={handleTasksRefresh}
                     />
                 ))}
             </Box>

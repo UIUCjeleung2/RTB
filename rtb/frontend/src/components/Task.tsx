@@ -30,6 +30,7 @@ interface TaskProps {
   onSubtaskCreate: () => void;
   onSubtaskCheck: () => void;
   onSubtaskUncheck: () => void;
+  onTasksChange?: () => void;
 }
 
 declare const process: {
@@ -47,10 +48,12 @@ export default function Task({
   onSubtaskCreate,
   onSubtaskCheck,
   onSubtaskUncheck,
+  onTasksChange,
 }: TaskProps) {
 
   const DEBUG_BORDER = "1px solid red";
   const token = localStorage.getItem("token");
+  const boardId = localStorage.getItem("boardId");
 
   // Handles the opening and closing of the Menu on the three dots
   const [anchorElement, setAnchorElement] = React.useState<null | HTMLElement>(null);
@@ -123,7 +126,7 @@ export default function Task({
   const handleAddStep = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5001/api/tasks/board/${JSON.parse(localStorage.getItem("boardId") || "{}")}`,
+        `http://localhost:5001/api/tasks/board/${boardId}`,
         {
           method: "POST",
           headers: {
@@ -139,9 +142,11 @@ export default function Task({
 
       if (response.ok) {
         const data = await response.json();
-        setLocalSubtasks([...localSubtasks, data.task]);
-        setCompletedSubtasks([...completedSubtasks, false]);
+        const newSubtasks = [...localSubtasks, data.task];
+        setLocalSubtasks(newSubtasks);
         onSubtaskCreate();
+        // Notify parent to refresh
+        onTasksChange?.();
       }
     } catch (error) {
       console.error("Error adding subtask:", error);
@@ -163,9 +168,93 @@ export default function Task({
       if (response.ok) {
         // Task deleted successfully - parent component should refresh
         handleClose();
+        onTasksChange?.();
       }
     } catch (error) {
       console.error("Error deleting task:", error);
+    }
+  };
+
+  const handleDeleteSubtask = async (subtaskId: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/${subtaskId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const updatedSubtasks = localSubtasks.filter(st => st._id !== subtaskId);
+        setLocalSubtasks(updatedSubtasks);
+        onTasksChange?.();
+      }
+    } catch (error) {
+      console.error("Error deleting subtask:", error);
+    }
+  };
+
+  const handleToggleSubtaskComplete = async (subtaskId: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/${subtaskId}/toggle-complete`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const updatedTask = await response.json();
+        
+        // Update local subtask
+        const updatedSubtasks = localSubtasks.map(st =>
+          st._id === subtaskId ? { ...st, completed: updatedTask.completed } : st
+        );
+        setLocalSubtasks(updatedSubtasks);
+
+        if (updatedTask.completed) {
+          onSubtaskCheck();
+        } else {
+          onSubtaskUncheck();
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling subtask complete:", error);
+    }
+  };
+
+  const handleRenameSubtask = async (subtaskId: string, newTitle: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/${subtaskId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+          body: JSON.stringify({ title: newTitle }),
+        }
+      );
+
+      if (response.ok) {
+        const updatedTask = await response.json();
+        
+        // Update local subtask
+        const updatedSubtasks = localSubtasks.map(st =>
+          st._id === subtaskId ? { ...st, title: updatedTask.title } : st
+        );
+        setLocalSubtasks(updatedSubtasks);
+      }
+    } catch (error) {
+      console.error("Error renaming subtask:", error);
     }
   };
 
@@ -186,7 +275,10 @@ export default function Task({
           >
             <IconButton
               size="small"
-              onClick={handleToggleComplete}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleComplete();
+              }}
             >
               {isCompleted ? (
                 <CheckCircleIcon sx={{ color: "green" }} />
@@ -222,18 +314,9 @@ export default function Task({
               {localSubtasks.length > 0 && (
                 <SubtaskList
                   subtasks={localSubtasks}
-                  completed={completedSubtasks}
-                  onToggle={(index: number) => {
-                      if (completedSubtasks[index] === false) {
-                        onSubtaskCheck();
-                      } else {
-                        onSubtaskUncheck();                        
-                      }
-                      setCompletedSubtasks(prev =>
-                        prev.map((val, i) => (i === index ? !val : val))
-                      );
-                    }
-                  }
+                  onToggle={handleToggleSubtaskComplete}
+                  onDelete={handleDeleteSubtask}
+                  onRename={handleRenameSubtask}
                 />
               )}
 
