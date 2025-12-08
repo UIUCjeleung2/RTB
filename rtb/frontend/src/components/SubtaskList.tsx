@@ -20,14 +20,14 @@ export default function SubtaskList({subtasks, completed, onToggle, onDelete}: S
                 <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", overflowY: "auto", mb: index !== subtasks.length - 1 ? -1 : 0}}>
 
                     <Box key={`Header ${index}`} sx={{ display: "flex", alignItems: "center" }}>
-                        <IconButton aria-label="toggle complete" onClick={() => onToggle(index)}>
+                        <IconButton aria-label="toggle complete" onClick={(event) => { event.stopPropagation(); onToggle(index); }}>
                             {completed[index] ? <CheckCircleIcon color="success"/> : <CheckCircleOutlineIcon />}
                         </IconButton>
                         <Typography variant="body1" color="black">{task}</Typography>                        
                     </Box>
                     {/* I have to do something with the index that is passed, like go to the subtask[index] and delete it*/}
                     <Box key={`Tail ${index}`} sx={{ display: "flex", alignItems: "center" }}>
-                        <IconButton aria-label="toggle complete" onClick={() => onDelete(index)}>
+                        <IconButton aria-label="toggle complete" onClick={(event) => { event.stopPropagation(); onDelete(index); }}>
                             {completed[index] ? <Delete/> : <Delete/>}
                         </IconButton>
                     </Box>

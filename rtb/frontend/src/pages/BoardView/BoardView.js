@@ -18,10 +18,8 @@ export default function BoardView() {
   const [layer, setLayer] = useState(0);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   
-  const onClickSubtask = () => {
-    setLayer(layer + 1);
-    console.log("Clicked!");
-    console.log(`translateX(${-layer * 4}px) translateY(${layer * 4}px) translateZ(${-layer}px)`)
+  const onClickSubtask = (taskID) => {
+    console.log(taskID);
   }
 
   useEffect(() => {
@@ -43,6 +41,7 @@ export default function BoardView() {
       if (response.ok) {
         const data = await response.json();
         setBoard(data.board);
+        console.log(data.board);
       } else {
         console.error("Failed to fetch board");
         alert("Board not found");
@@ -98,10 +97,6 @@ export default function BoardView() {
       </div>
 
       {/* This is the actual board stuff */}
-
-
-
-        
 
       <BoardCard sx = {{minWidth: 345, transform: `translateX(${-layer * 4}px) translateY(${layer * 4}px) translateZ(${-layer}px)`, opacity: Math.max(0, 1 - layer * 0.33)}}>
         <Box 

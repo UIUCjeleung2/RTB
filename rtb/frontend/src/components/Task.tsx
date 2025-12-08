@@ -107,7 +107,7 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
 
   return (
     // The actual card
-    <Card sx={{ maxWidth: 345, p: 1, borderRadius: 5, flexShrink: 0}} onClick={onClickSubtask}>
+    <Card sx={{ maxWidth: 345, p: 1, borderRadius: 5, flexShrink: 0, cursor: 'pointer'}} onClick={onClickSubtask}>
 
       <Box id="subtask" sx={{display: 'flex', flexDirection: "column", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
       
@@ -129,6 +129,7 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
               open={open}
               onClose={handleClose}
               anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+              onClick={(event) => { event.stopPropagation() }}  // Prevents accidental triggering of opening a subtask
             >
               <MenuItem onClick={handleRename}>Rename</MenuItem>
               <MenuItem onClick={handleAddStep}>Add Step</MenuItem>

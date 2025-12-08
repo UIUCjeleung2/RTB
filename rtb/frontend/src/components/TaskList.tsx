@@ -7,7 +7,7 @@ import Task from "./Task.tsx";
 // and fixes the Add Task button at the bottom.
 
 interface TaskListProps {
-    onClickSubtask: Function;
+    onClickSubtask: (taskId: string) => void;
 }
 
 export default function TaskList({onClickSubtask} : TaskListProps) {
@@ -25,7 +25,7 @@ export default function TaskList({onClickSubtask} : TaskListProps) {
     
 
 
-    const [tasks, setTasks] = useState<string[]>([]);
+    const [tasks, setTasks] = useState<any[]>([]);
 
     console.log("MOUNTING");
     useEffect(() => {
@@ -39,7 +39,7 @@ export default function TaskList({onClickSubtask} : TaskListProps) {
                     const data = await response.json();
                     console.log(data.tasks);
                     // assuming backend returns an array of task titles
-                    setTasks(data.tasks.map((t: any) => t.title));
+                    setTasks(data.tasks);
                 } else {
                     console.error("Failed to fetch tasks");
                 }
@@ -126,10 +126,10 @@ export default function TaskList({onClickSubtask} : TaskListProps) {
             {/* Task list box, overflowY makes it scrollable */}
             <Box sx = {{display: "flex", flexDirection: "column", width: "100%", overflowY: "auto", gap: 1}}>
                 {tasks.map((task, index)=> (
-                    <Task key={index} title={task} onTitleChange={(newTitle) => updateTaskTitle(index, newTitle)}
+                    <Task key={index} title={task.title} onTitleChange={(newTitle) => updateTaskTitle(index, newTitle)}
                           onSubtaskCreate={() => onSubtaskCreate()} onSubtaskCheck={() => onSubtaskCheck()} 
                           onSubtaskUncheck={() => onSubtaskUncheck()} onSubtaskDelete={() => onSubtaskDelete()}
-                          onClickSubtask={() => onClickSubtask()}
+                          onClickSubtask={() => onClickSubtask(task._id)}
                     />
                 ))}
             </Box>
