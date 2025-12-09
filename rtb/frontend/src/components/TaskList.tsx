@@ -27,10 +27,10 @@ export default function TaskList({ boardId, tasks = [], onTasksChange, onClickSu
     const [completed, setCompleted] = useState(0);
     const token = localStorage.getItem("token");
 
-    useEffect(() => {
+    /*useEffect(() => {
         setLocalTasks(tasks);
         calculateProgress(tasks);
-    }, [tasks]);
+    }, [tasks]);*/
 
     // Helper: Apply cascading completion logic locally
     const applyCascadeLocally = (taskList: TaskItem[], taskId: string, newCompleted: boolean): TaskItem[] => {

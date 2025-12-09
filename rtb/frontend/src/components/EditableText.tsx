@@ -13,9 +13,9 @@ interface EditableTextProps {
 export default function EditableText({title, onTitleChange, isEditing, setIsEditing} : EditableTextProps) {
   const [currentTitle, setCurrentTitle] = React.useState(title);
 
-  React.useEffect(()=> {
+  /*React.useEffect(()=> {
     console.log(isEditing);
-  }, [isEditing]);
+  }, [isEditing]);*/
 
   return (
     <>

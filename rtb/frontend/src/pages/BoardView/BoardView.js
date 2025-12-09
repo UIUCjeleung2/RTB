@@ -13,50 +13,62 @@ import TaskList from "../../components/TaskList.tsx";
 export default function BoardView() {
   const { boardId } = useParams();
   const navigate = useNavigate();
-  const [board, setBoard] = useState(null);
   const [layer, setLayer] = useState(0);
   const [tasks, setTasks] = useState([]);
+  const [boardStack, setBoardStack] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   
   const onClickSubtask = (taskId) => {
-    console.log(taskId);
-
     fetchTaskBoard(taskId);
   }
 
-  const [boardStack, setBoardStack] = useState([]);
 
-  // Used to spawn a board card with name "title" and at left corner coord "x"
-  const spawnBoardCard = (title, left) => {
-    const newBoard = {
-      id: crypto.randomUUID(),
-      title: title,
-      currentX: -400,
-      targetX: left
-    }
-    setBoardStack(prev => [...prev, newBoard]);
+  // Used to spawn a board card.
+  // Both board and task data structures can be passed in for `board`, as both have title and tasks fields
+  const spawnBoardCard = (board, top) => {
+    // Push all previous layers back
+    
+
+    setBoardStack(prev =>
+      [
+        ...prev.map(b => ({
+          ...b,
+          layer: b.layer + 1   // Increment layer for all existing boards
+        })),
+        board
+      ]
+    );
 
     // This will animate the boardCard sliding in
-    setTimeout(() => {
+    /*setTimeout(() => {
       setBoardStack((prev) =>
         prev.map((b) =>
-          b.id === newBoard.id ? {...b, currentX: b.targetX} : b
+          b._id === board._id ? {...b, currentX: b.targetX} : b
         )
       );
-    }, 400);
+    }, 400);*/
   };
 
   // When we click on the up arrow, we want to pop the latest
   // boardcard off the stack
   const goUp = () => {
-    console.log(boardStack);
     setBoardStack(prev => {
       if (prev.length <= 1) {
         navigate("/dashboard");
-        return []; // remove last card
+        return [];
       }
-      return prev.slice(0, -1);
+
+      // Remove the last board
+      const trimmed = prev.slice(0, -1);
+
+      // Decrement the layer of each remaining board
+      const updated = trimmed.map(board => ({
+        ...board,
+        layer: board.layer - 1
+      }));
+
+      return updated;
     });
   };
 
@@ -66,73 +78,24 @@ export default function BoardView() {
   // This will spawn a card when the board is opened
 const hasSpawnedInitialCard = useRef(false);
 
-useEffect(() => {
+/*useEffect(() => {
   if (!hasSpawnedInitialCard.current) {
     spawnBoardCard("Card1", 100);
     hasSpawnedInitialCard.current = true;
   }
-}, []);
+}, []);*/
 
 
   useEffect(() => {
-    console.log(boardStack);
+    console.log("Board stack:", boardStack);
   }, [boardStack]);
 
 
-  const [boardStack, setBoardStack] = useState([]);
-
-  // Used to spawn a board card with name "title" and at left corner coord "x"
-  const spawnBoardCard = (title, left) => {
-    const newBoard = {
-      id: crypto.randomUUID(),
-      title: title,
-      currentX: -400,
-      targetX: left
-    }
-    setBoardStack(prev => [...prev, newBoard]);
-
-    // This will animate the boardCard sliding in
-    setTimeout(() => {
-      setBoardStack((prev) =>
-        prev.map((b) =>
-          b.id === newBoard.id ? {...b, currentX: b.targetX} : b
-        )
-      );
-    }, 400);
-  };
-
-  // When we click on the up arrow, we want to pop the latest
-  // boardcard off the stack
-  const goUp = () => {
-    console.log(boardStack);
-    setBoardStack(prev => {
-      if (prev.length <= 1) {
-        navigate("/dashboard");
-        return []; // remove last card
-      }
-      return prev.slice(0, -1);
-    });
-  };
-
-
-
-  // Define a function named spawnNewBoardCard which will dynamically put in more of them
-  // This will spawn a card when the board is opened
-const hasSpawnedInitialCard = useRef(false);
-
-useEffect(() => {
-  if (!hasSpawnedInitialCard.current) {
-    spawnBoardCard("Card1", 100);
-    hasSpawnedInitialCard.current = true;
-  }
-}, []);
-
+  const fetched = useRef(false);
 
   useEffect(() => {
-    console.log(boardStack);
-  }, [boardStack]);
-
-  useEffect(() => {
+    if (fetched.current) return;  // Ignore the second StrictMode run
+    fetched.current = true;
     fetchBoard();
   }, [boardId]);
 
@@ -150,23 +113,16 @@ useEffect(() => {
 
       if (response.ok) {
         const data = await response.json();
-        setBoard(data.board);
+        const formattedData = {
+          "title": data.board.title,
+          "tasks": data.tasks,
+          "layer": 0,
+          "offsetY:": 0
+        }
+
         localStorage.setItem("boardId", boardId);
         
-        // Fetch tasks for this board
-        const tasksResponse = await fetch(
-          `http://localhost:5001/api/tasks/board/${boardId}`,
-          {
-            headers: {
-              Authorization: token,
-            },
-          }
-        );
-        
-        if (tasksResponse.ok) {
-          const tasksData = await tasksResponse.json();
-          setTasks(tasksData.tasks);
-        }
+        spawnBoardCard(formattedData, 0);
       } else {
         console.error("Failed to fetch board");
         alert("Board not found");
@@ -195,7 +151,16 @@ useEffect(() => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Task data:", data);
+        const formattedData = {
+          "title": data.task.title,
+          "tasks": data.task.subtasks,
+          "layer": 0,
+          "offsetY:": 0
+        }
+
+        console.log("Subtasks: ", data)
+
+        spawnBoardCard(formattedData, 0)
       } else {
         console.error("Failed to fetch task");
         alert("Task list not found");
@@ -221,7 +186,7 @@ useEffect(() => {
     );
   }
 
-  if (!board) {
+  if (boardStack.length == 0) {
     return (
       <div className="board-view">
         <div className="error-message">Board not found</div>
@@ -239,7 +204,7 @@ useEffect(() => {
         <button className="back-button" onClick={handleBackToDashboard}>
           ← Back to Dashboard
         </button>
-        <h1 className="board-title">{board.title}</h1>
+        <h1 className="board-title">{boardStack[0].title}</h1>
         <div className="board-user-info">
           {user.picture && (
             <img
@@ -254,7 +219,7 @@ useEffect(() => {
       {/* This is the actual board stuff */}
 
       {boardStack.map(board => (
-      <BoardCard sx = {{minWidth: 345, left: board.currentX, transition: "left 0.5s ease"}}>
+      <BoardCard sx = {{minWidth: 345, transform: `translateX(${-board.layer * 8}px) translateY(${board.layer * 8}px) translateZ(${-board.layer}px)`, opacity: Math.max(0, 1 - board.layer * 0.33), transition: "left 0.5s ease, transform 0.3 ease, opacity 0.3 ease"}}>
         <Box 
           sx={{
             display: 'flex',               // 1. Enable Flexbox
@@ -276,7 +241,7 @@ useEffect(() => {
             </IconButton>
         </Box>
 
-        <TaskList boardId={boardId} tasks={tasks} onTasksChange={setTasks} onClickSubtask={onClickSubtask} />
+        <TaskList boardId={boardId} tasks={board.tasks} onTasksChange={setTasks} onClickSubtask={onClickSubtask} />
 
       </BoardCard>      
     ))}
