@@ -28,6 +28,7 @@ interface TaskProps {
   subtasks?: SubtaskItem[];
   onTitleChange: (newTitle: string) => void;
   onTasksChange?: () => void;
+  onOptimisticToggle?: (taskId: string, currentCompleted: boolean) => void;
 }
 
 declare const process: {
@@ -43,6 +44,7 @@ export default function Task({
   subtasks = [],
   onTitleChange,
   onTasksChange,
+  onOptimisticToggle,
 }: TaskProps) {
 
   const DEBUG_BORDER = "1px solid red";
@@ -61,8 +63,10 @@ export default function Task({
   }, [completed]);
 
   const handleToggleComplete = async () => {
-    // Instant UI toggle for responsiveness
-    setIsCompleted((prev) => !prev);
+    // Optimistic update - instant UI response
+    if (onOptimisticToggle) {
+      onOptimisticToggle(taskId, completed);
+    }
 
     try {
       const response = await fetch(
@@ -77,16 +81,21 @@ export default function Task({
       );
 
       if (response.ok) {
-        // Refresh all tasks from server to get accurate state
+        // Refresh all tasks from server to sync with backend state
         onTasksChange?.();
       } else {
         // Revert on error
-        setIsCompleted(prev => !prev);
+        console.error("Toggle failed, reverting");
+        if (onOptimisticToggle) {
+          onOptimisticToggle(taskId, !completed);
+        }
       }
     } catch (err) {
       console.error("Error toggling complete:", err);
       // Revert on error
-      setIsCompleted(prev => !prev);
+      if (onOptimisticToggle) {
+        onOptimisticToggle(taskId, !completed);
+      }
     }
   };
 
@@ -181,6 +190,24 @@ export default function Task({
   };
 
   const handleToggleSubtaskComplete = async (subtaskId: string) => {
+    // Find subtask to get its current completed state
+    const findSubtask = (tasks: SubtaskItem[], id: string): SubtaskItem | null => {
+      for (const task of tasks) {
+        if (task._id === id) return task;
+        if (task.subtasks) {
+          const found = findSubtask(task.subtasks, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const subtask = findSubtask(subtasks, subtaskId);
+    if (subtask && onOptimisticToggle) {
+      // Optimistic update
+      onOptimisticToggle(subtaskId, subtask.completed);
+    }
+
     try {
       const response = await fetch(
         `http://localhost:5001/api/tasks/${subtaskId}/toggle-complete`,
@@ -194,11 +221,20 @@ export default function Task({
       );
 
       if (response.ok) {
-        // Refresh all tasks from server to get accurate state
+        // Refresh all tasks from server to sync
         onTasksChange?.();
+      } else {
+        // Revert on error
+        if (subtask && onOptimisticToggle) {
+          onOptimisticToggle(subtaskId, !subtask.completed);
+        }
       }
     } catch (error) {
       console.error("Error toggling subtask complete:", error);
+      // Revert on error
+      if (subtask && onOptimisticToggle) {
+        onOptimisticToggle(subtaskId, !subtask.completed);
+      }
     }
   };
 
@@ -284,6 +320,7 @@ export default function Task({
                   onToggle={handleToggleSubtaskComplete}
                   onDelete={handleDeleteSubtask}
                   onRename={handleRenameSubtask}
+                  onOptimisticToggle={onOptimisticToggle}
                 />
               )}
 

@@ -31,6 +31,49 @@ export default function TaskList({ boardId, tasks = [], onTasksChange }: TaskLis
         calculateProgress(tasks);
     }, [tasks]);
 
+    // Helper: Apply cascading completion logic locally
+    const applyCascadeLocally = (taskList: TaskItem[], taskId: string, newCompleted: boolean): TaskItem[] => {
+        const cascadeToChildren = (task: TaskItem, completed: boolean): TaskItem => {
+            const updatedSubtasks = task.subtasks?.map(st => cascadeToChildren(st, completed)) || [];
+            return { ...task, completed, subtasks: updatedSubtasks };
+        };
+
+        const updateTaskRecursively = (taskList: TaskItem[]): TaskItem[] => {
+            return taskList.map(task => {
+                if (task._id === taskId) {
+                    // Found the toggled task - cascade to children
+                    return cascadeToChildren(task, newCompleted);
+                }
+
+                // Check subtasks recursively
+                if (task.subtasks && task.subtasks.length > 0) {
+                    const updatedSubtasks = updateTaskRecursively(task.subtasks);
+
+                    // Check if all subtasks are complete
+                    const allComplete = updatedSubtasks.every(st => st.completed);
+
+                    return {
+                        ...task,
+                        completed: allComplete,
+                        subtasks: updatedSubtasks
+                    };
+                }
+
+                return task;
+            });
+        };
+
+        return updateTaskRecursively(taskList);
+    };
+
+    // Optimistic task toggle update
+    const handleOptimisticToggle = (taskId: string, currentCompleted: boolean) => {
+        const newCompleted = !currentCompleted;
+        const updatedTasks = applyCascadeLocally(localTasks, taskId, newCompleted);
+        setLocalTasks(updatedTasks);
+        calculateProgress(updatedTasks);
+    };
+
     const calculateProgress = (taskList: TaskItem[]) => {
         const totalRootTasks = taskList.length;
 
@@ -193,6 +236,7 @@ export default function TaskList({ boardId, tasks = [], onTasksChange }: TaskLis
                         subtasks={task.subtasks || []}
                         onTitleChange={(newTitle) => handleUpdateTaskTitle(task._id, newTitle)}
                         onTasksChange={handleTasksRefresh}
+                        onOptimisticToggle={handleOptimisticToggle}
                     />
                 ))}
             </Box>

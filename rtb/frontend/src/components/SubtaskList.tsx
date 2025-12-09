@@ -18,9 +18,10 @@ interface SubtaskListProps {
     onToggle: (subtaskId: string) => void;
     onDelete: (subtaskId: string) => void;
     onRename: (subtaskId: string, newTitle: string) => void;
+    onOptimisticToggle?: (taskId: string, currentCompleted: boolean) => void;
 }
 
-export default function SubtaskList({subtasks, onToggle, onDelete, onRename}: SubtaskListProps) {
+export default function SubtaskList({subtasks, onToggle, onDelete, onRename, onOptimisticToggle}: SubtaskListProps) {
     const [editingId, setEditingId] = React.useState<string | null>(null);
 
     return (
