@@ -1,0 +1,14 @@
+image: node:18
+
+pages:
+  stage: deploy
+  script:
+    - cd frontend
+    - npm install
+    - npm run build
+    - mv build ../public
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
