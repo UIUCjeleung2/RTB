@@ -78,7 +78,7 @@ export default function BoardView() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5001/api/boards/${boardId}`,
+        `http://localhost:5001/api/tasks/${taskId}`,
         {
           headers: {
             Authorization: token,
@@ -88,9 +88,7 @@ export default function BoardView() {
 
       if (response.ok) {
         const data = await response.json();
-        // TODO: Make this update board list instead of board
-        //setBoard(data.board);
-        console.log(data.board.tasks);
+        console.log("Task data:", data);
       } else {
         console.error("Failed to fetch task");
         alert("Task list not found");
@@ -169,58 +167,10 @@ export default function BoardView() {
               <Check sx = {{color:"black"}}/>
             </IconButton>
         </Box>
-        
-        {/* The actual task card */}
-        {/* <Task/>
-        <AddTask>
-          <Typography variant="body1" color="black">+ Add Task</Typography>
-        </AddTask> */}
 
         <TaskList boardId={boardId} tasks={tasks} onTasksChange={setTasks} onClickSubtask={onClickSubtask} />
 
       </BoardCard>
-
-      {/* <div className="board-content">
-        <div className="board-info-card">
-          <h2>Board Information</h2>
-          <div className="info-row">
-            <span className="info-label">Board ID:</span>
-            <span className="info-value">{board._id}</span>
-          </div>
-          <div className="info-row">
-            <span className="info-label">Title:</span>
-            <span className="info-value">{board.title}</span>
-          </div>
-          <div className="info-row">
-            <span className="info-label">Description:</span>
-            <span className="info-value">
-              {board.description || "(No description)"}
-            </span>
-          </div>
-          <div className="info-row">
-            <span className="info-label">Color:</span>
-            <span className="info-value">
-              <span
-                className="color-preview"
-                style={{ backgroundColor: board.color }}
-              ></span>
-              {board.color}
-            </span>
-          </div>
-          <div className="info-row">
-            <span className="info-label">Created:</span>
-            <span className="info-value">
-              {new Date(board.createdAt).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-
-        <div className="tasks-placeholder">
-          <p className="placeholder-text">
-            Tasks will appear here once implemented
-          </p>
-        </div>
-      </div> */}
     </div>
   );
 }
