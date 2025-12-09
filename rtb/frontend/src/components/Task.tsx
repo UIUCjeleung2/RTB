@@ -27,9 +27,6 @@ interface TaskProps {
   completed?: boolean;
   subtasks?: SubtaskItem[];
   onTitleChange: (newTitle: string) => void;
-  onSubtaskCreate: () => void;
-  onSubtaskCheck: () => void;
-  onSubtaskUncheck: () => void;
   onTasksChange?: () => void;
 }
 
@@ -45,9 +42,6 @@ export default function Task({
   completed = false,
   subtasks = [],
   onTitleChange,
-  onSubtaskCreate,
-  onSubtaskCheck,
-  onSubtaskUncheck,
   onTasksChange,
 }: TaskProps) {
 
@@ -61,8 +55,13 @@ export default function Task({
   const open = Boolean(anchorElement);
   const completionPercent = isCompleted ? 100 : 0;
 
+  // Sync isCompleted with completed prop when it changes
+  React.useEffect(() => {
+    setIsCompleted(completed);
+  }, [completed]);
+
   const handleToggleComplete = async () => {
-    // Instant UI toggle
+    // Instant UI toggle for responsiveness
     setIsCompleted((prev) => !prev);
 
     try {
@@ -78,13 +77,11 @@ export default function Task({
       );
 
       if (response.ok) {
-        const updatedTask = await response.json();
-        setIsCompleted(updatedTask.completed);
-        if (updatedTask.completed) {
-          onSubtaskCheck();
-        } else {
-          onSubtaskUncheck();
-        }
+        // Refresh all tasks from server to get accurate state
+        onTasksChange?.();
+      } else {
+        // Revert on error
+        setIsCompleted(prev => !prev);
       }
     } catch (err) {
       console.error("Error toggling complete:", err);
@@ -112,16 +109,7 @@ export default function Task({
     handleClose();
   }
 
-  // Handle adding a subtask
-  const [localSubtasks, setLocalSubtasks] = React.useState<SubtaskItem[]>(subtasks);
-  const [completedSubtasks, setCompletedSubtasks] = React.useState<boolean[]>(
-    subtasks.map(st => st.completed)
-  );
-
-  React.useEffect(() => {
-    setLocalSubtasks(subtasks);
-    setCompletedSubtasks(subtasks.map(st => st.completed));
-  }, [subtasks]);
+  // No local subtask state - rely on props and server refresh
 
   const handleAddStep = async () => {
     try {
@@ -141,11 +129,7 @@ export default function Task({
       );
 
       if (response.ok) {
-        const data = await response.json();
-        const newSubtasks = [...localSubtasks, data.task];
-        setLocalSubtasks(newSubtasks);
-        onSubtaskCreate();
-        // Notify parent to refresh
+        // Refresh all tasks from server
         onTasksChange?.();
       }
     } catch (error) {
@@ -188,8 +172,7 @@ export default function Task({
       );
 
       if (response.ok) {
-        const updatedSubtasks = localSubtasks.filter(st => st._id !== subtaskId);
-        setLocalSubtasks(updatedSubtasks);
+        // Refresh all tasks from server
         onTasksChange?.();
       }
     } catch (error) {
@@ -211,19 +194,8 @@ export default function Task({
       );
 
       if (response.ok) {
-        const updatedTask = await response.json();
-        
-        // Update local subtask
-        const updatedSubtasks = localSubtasks.map(st =>
-          st._id === subtaskId ? { ...st, completed: updatedTask.completed } : st
-        );
-        setLocalSubtasks(updatedSubtasks);
-
-        if (updatedTask.completed) {
-          onSubtaskCheck();
-        } else {
-          onSubtaskUncheck();
-        }
+        // Refresh all tasks from server to get accurate state
+        onTasksChange?.();
       }
     } catch (error) {
       console.error("Error toggling subtask complete:", error);
@@ -245,13 +217,8 @@ export default function Task({
       );
 
       if (response.ok) {
-        const updatedTask = await response.json();
-        
-        // Update local subtask
-        const updatedSubtasks = localSubtasks.map(st =>
-          st._id === subtaskId ? { ...st, title: updatedTask.title } : st
-        );
-        setLocalSubtasks(updatedSubtasks);
+        // Refresh all tasks from server
+        onTasksChange?.();
       }
     } catch (error) {
       console.error("Error renaming subtask:", error);
@@ -311,9 +278,9 @@ export default function Task({
           </Box>
 
           <Box id="subtasklist" sx = {{display: "flex", width: "88%"}}>
-              {localSubtasks.length > 0 && (
+              {subtasks.length > 0 && (
                 <SubtaskList
-                  subtasks={localSubtasks}
+                  subtasks={subtasks}
                   onToggle={handleToggleSubtaskComplete}
                   onDelete={handleDeleteSubtask}
                   onRename={handleRenameSubtask}

@@ -122,6 +122,11 @@ export const createTask = async (req, res) => {
       completed: false
     });
 
+    // If this is a subtask, update parent completion status
+    if (parentTaskId) {
+      await updateParentCompletion(task._id);
+    }
+
     res.status(201).json({ task });
   } catch (err) {
     console.error("Create task error:", err);
@@ -178,6 +183,49 @@ export const updateTask = async (req, res) => {
   }
 };
 
+// Helper: Recursively mark all subtasks as completed/incompleted
+const cascadeCompletionToSubtasks = async (taskId, completed) => {
+  const subtasks = await Task.find({ parentTask: taskId });
+
+  for (const subtask of subtasks) {
+    subtask.completed = completed;
+    subtask.status = completed ? "done" : "todo";
+    await subtask.save();
+
+    // Recursively cascade to subtasks' subtasks
+    await cascadeCompletionToSubtasks(subtask._id, completed);
+  }
+};
+
+// Helper: Check if all siblings are complete and update parent accordingly
+const updateParentCompletion = async (taskId) => {
+  const task = await Task.findById(taskId);
+  if (!task || !task.parentTask) {
+    return; // No parent to update
+  }
+
+  // Get all siblings (tasks with same parent)
+  const siblings = await Task.find({ parentTask: task.parentTask });
+
+  // Check if all siblings are complete
+  const allComplete = siblings.every(sibling => sibling.completed);
+  const anyComplete = siblings.some(sibling => sibling.completed);
+
+  // Update parent
+  const parent = await Task.findById(task.parentTask);
+  if (parent) {
+    const wasCompleted = parent.completed;
+    parent.completed = allComplete;
+    parent.status = allComplete ? "done" : (anyComplete ? "in-progress" : "todo");
+    await parent.save();
+
+    // Recursively update grandparent
+    if (wasCompleted !== allComplete) {
+      await updateParentCompletion(parent._id);
+    }
+  }
+};
+
 // Toggle task complete status
 export const toggleTaskComplete = async (req, res) => {
   try {
@@ -195,14 +243,21 @@ export const toggleTaskComplete = async (req, res) => {
       return res.status(404).json({ message: "Board not found" });
     }
 
+    // Toggle completion
     task.completed = !task.completed;
     if (task.completed) {
       task.status = "done";
     } else {
       task.status = "todo";
     }
-
     await task.save();
+
+    // Cascade completion to all subtasks
+    await cascadeCompletionToSubtasks(taskId, task.completed);
+
+    // Update parent completion if this task has a parent
+    await updateParentCompletion(taskId);
+
     res.json({ task });
   } catch (err) {
     console.error("Toggle complete error:", err);
@@ -245,7 +300,34 @@ export const deleteTask = async (req, res) => {
       return res.status(404).json({ message: "Board not found" });
     }
 
+    // Save parent ID before deletion
+    const parentTaskId = task.parentTask;
+
     await deleteTaskRecursive(taskId);
+
+    // Update parent completion if this was a subtask
+    if (parentTaskId) {
+      // Get one of the remaining siblings to trigger parent update
+      const remainingSibling = await Task.findOne({ parentTask: parentTaskId });
+      if (remainingSibling) {
+        await updateParentCompletion(remainingSibling._id);
+      } else {
+        // No siblings left, just update the parent directly
+        const parent = await Task.findById(parentTaskId);
+        if (parent) {
+          parent.completed = false;
+          parent.status = "todo";
+          await parent.save();
+          // Check if grandparent needs updating
+          if (parent.parentTask) {
+            const grandparentSibling = await Task.findOne({ parentTask: parent.parentTask });
+            if (grandparentSibling) {
+              await updateParentCompletion(grandparentSibling._id);
+            }
+          }
+        }
+      }
+    }
 
     res.json({ message: "Task and all subtasks deleted successfully" });
   } catch (err) {

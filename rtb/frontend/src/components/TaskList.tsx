@@ -32,25 +32,40 @@ export default function TaskList({ boardId, tasks = [], onTasksChange }: TaskLis
     }, [tasks]);
 
     const calculateProgress = (taskList: TaskItem[]) => {
-        let totalSubtasks = 0;
-        let completedCount = 0;
+        const totalRootTasks = taskList.length;
 
-        const countSubtasks = (task: TaskItem) => {
-            if (task.subtasks && task.subtasks.length > 0) {
-                task.subtasks.forEach(subtask => {
-                    totalSubtasks++;
-                    if (subtask.completed) completedCount++;
-                    countSubtasks(subtask);
-                });
+        if (totalRootTasks === 0) {
+            setNumberOfSubtasks(0);
+            setCompleted(0);
+            return;
+        }
+
+        // Calculate completion weight for a task (0 to 1)
+        const getTaskCompletionWeight = (task: TaskItem): number => {
+            if (!task.subtasks || task.subtasks.length === 0) {
+                // Leaf task - either complete (1) or incomplete (0)
+                return task.completed ? 1 : 0;
             }
+
+            // Task with subtasks - weighted average of subtask completion
+            const subtaskWeights = task.subtasks.map(st => getTaskCompletionWeight(st));
+            const totalWeight = subtaskWeights.reduce((sum, w) => sum + w, 0);
+            return totalWeight / subtaskWeights.length;
         };
 
+        // Sum up completion weights for all root tasks
+        let totalCompletionWeight = 0;
         taskList.forEach(task => {
-            countSubtasks(task);
+            totalCompletionWeight += getTaskCompletionWeight(task);
         });
 
-        setNumberOfSubtasks(totalSubtasks);
-        setCompleted(completedCount);
+        // Progress is based on root tasks only
+        // Each root task contributes equally (1/totalRootTasks)
+        const percentage = (totalCompletionWeight / totalRootTasks) * 100;
+
+        // For display purposes, we show it as completed/total
+        setNumberOfSubtasks(totalRootTasks);
+        setCompleted(totalCompletionWeight);
     };
 
     // Add a new root task
@@ -148,17 +163,8 @@ export default function TaskList({ boardId, tasks = [], onTasksChange }: TaskLis
         }
     };
 
-    const onSubtaskCreate = () => {
-        setNumberOfSubtasks(numberOfSubtasks + 1);
-    };
-
-    const onSubtaskCheck = () => {
-        setCompleted(completed + 1);
-    };
-
-    const onSubtaskUncheck = () => {
-        setCompleted(completed - 1);
-    };
+    // Removed manual increment/decrement callbacks
+    // Progress is now calculated from actual task data after server refresh
 
     return (
         <Box sx={{ display: "flex", flexDirection: "column", height: "88%", width: "100%" }}>
@@ -186,9 +192,6 @@ export default function TaskList({ boardId, tasks = [], onTasksChange }: TaskLis
                         completed={task.completed}
                         subtasks={task.subtasks || []}
                         onTitleChange={(newTitle) => handleUpdateTaskTitle(task._id, newTitle)}
-                        onSubtaskCreate={onSubtaskCreate}
-                        onSubtaskCheck={onSubtaskCheck}
-                        onSubtaskUncheck={onSubtaskUncheck}
                         onTasksChange={handleTasksRefresh}
                     />
                 ))}
