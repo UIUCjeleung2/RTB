@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./BoardView.css";
 import BoardCard from "../../components/BoardCard.tsx";
@@ -24,6 +24,113 @@ export default function BoardView() {
 
     fetchTaskBoard(taskId);
   }
+
+  const [boardStack, setBoardStack] = useState([]);
+
+  // Used to spawn a board card with name "title" and at left corner coord "x"
+  const spawnBoardCard = (title, left) => {
+    const newBoard = {
+      id: crypto.randomUUID(),
+      title: title,
+      currentX: -400,
+      targetX: left
+    }
+    setBoardStack(prev => [...prev, newBoard]);
+
+    // This will animate the boardCard sliding in
+    setTimeout(() => {
+      setBoardStack((prev) =>
+        prev.map((b) =>
+          b.id === newBoard.id ? {...b, currentX: b.targetX} : b
+        )
+      );
+    }, 400);
+  };
+
+  // When we click on the up arrow, we want to pop the latest
+  // boardcard off the stack
+  const goUp = () => {
+    console.log(boardStack);
+    setBoardStack(prev => {
+      if (prev.length <= 1) {
+        navigate("/dashboard");
+        return []; // remove last card
+      }
+      return prev.slice(0, -1);
+    });
+  };
+
+
+
+  // Define a function named spawnNewBoardCard which will dynamically put in more of them
+  // This will spawn a card when the board is opened
+const hasSpawnedInitialCard = useRef(false);
+
+useEffect(() => {
+  if (!hasSpawnedInitialCard.current) {
+    spawnBoardCard("Card1", 100);
+    hasSpawnedInitialCard.current = true;
+  }
+}, []);
+
+
+  useEffect(() => {
+    console.log(boardStack);
+  }, [boardStack]);
+
+
+  const [boardStack, setBoardStack] = useState([]);
+
+  // Used to spawn a board card with name "title" and at left corner coord "x"
+  const spawnBoardCard = (title, left) => {
+    const newBoard = {
+      id: crypto.randomUUID(),
+      title: title,
+      currentX: -400,
+      targetX: left
+    }
+    setBoardStack(prev => [...prev, newBoard]);
+
+    // This will animate the boardCard sliding in
+    setTimeout(() => {
+      setBoardStack((prev) =>
+        prev.map((b) =>
+          b.id === newBoard.id ? {...b, currentX: b.targetX} : b
+        )
+      );
+    }, 400);
+  };
+
+  // When we click on the up arrow, we want to pop the latest
+  // boardcard off the stack
+  const goUp = () => {
+    console.log(boardStack);
+    setBoardStack(prev => {
+      if (prev.length <= 1) {
+        navigate("/dashboard");
+        return []; // remove last card
+      }
+      return prev.slice(0, -1);
+    });
+  };
+
+
+
+  // Define a function named spawnNewBoardCard which will dynamically put in more of them
+  // This will spawn a card when the board is opened
+const hasSpawnedInitialCard = useRef(false);
+
+useEffect(() => {
+  if (!hasSpawnedInitialCard.current) {
+    spawnBoardCard("Card1", 100);
+    hasSpawnedInitialCard.current = true;
+  }
+}, []);
+
+
+  useEffect(() => {
+    console.log(boardStack);
+  }, [boardStack]);
 
   useEffect(() => {
     fetchBoard();
@@ -122,6 +229,8 @@ export default function BoardView() {
     );
   }
 
+
+
   return (
     <div className="board-view" style={{backgroundColor: "#282c34"}}>
 
@@ -144,7 +253,8 @@ export default function BoardView() {
 
       {/* This is the actual board stuff */}
 
-      <BoardCard sx = {{minWidth: 345, transform: `translateX(${-layer * 4}px) translateY(${layer * 4}px) translateZ(${-layer}px)`, opacity: Math.max(0, 1 - layer * 0.33)}}>
+      {boardStack.map(board => (
+      <BoardCard sx = {{minWidth: 345, left: board.currentX, transition: "left 0.5s ease"}}>
         <Box 
           sx={{
             display: 'flex',               // 1. Enable Flexbox
@@ -156,21 +266,20 @@ export default function BoardView() {
             width: "95%"
           }}
         >
-            <IconButton variant="outlined">
+            <IconButton variant="outlined" onClick={()=> goUp()}>
               <ArrowUpward sx={{color:"blue"}}/>
             </IconButton>
-            <TextField value = "Task Name" fullWidth>
-
-            </TextField>
+            <TextField value = {board.title} fullWidth> </TextField>
             {/* <Typography variant="h6" component="h2" sx={{flex: 1, textAlign: "center"}}>Task Name</Typography> */}
-            <IconButton variant="outlined">
+            <IconButton variant="outlined" onClick={() => spawnBoardCard("name", 500)}>
               <Check sx = {{color:"black"}}/>
             </IconButton>
         </Box>
 
         <TaskList boardId={boardId} tasks={tasks} onTasksChange={setTasks} onClickSubtask={onClickSubtask} />
 
-      </BoardCard>
+      </BoardCard>      
+    ))}
     </div>
   );
 }
