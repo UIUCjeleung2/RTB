@@ -12,3 +12,4 @@ pages:
       - public
   only:
     - main
+    - auth-db-integration
