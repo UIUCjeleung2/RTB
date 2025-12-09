@@ -45,6 +45,8 @@ export const getBoard = async (req, res) => {
     await board.save();
 
     // Get tasks for this board
+
+    // FOUND THE PROBLEM
     const tasks = await Task.find({ board: boardId }).sort({ position: 1 });
 
     res.json({ board, tasks });

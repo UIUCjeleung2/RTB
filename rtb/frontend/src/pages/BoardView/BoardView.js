@@ -85,9 +85,9 @@ const hasSpawnedInitialCard = useRef(false);
 }, []);*/
 
 
-  useEffect(() => {
-    console.log("Board stack:", boardStack);
-  }, [boardStack]);
+  // useEffect(() => {
+  //   console.log("Board stack:", boardStack);
+  // }, [boardStack]);
 
 
   const fetched = useRef(false);
@@ -101,7 +101,9 @@ const hasSpawnedInitialCard = useRef(false);
   const fetchBoard = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
+
+      // Fetch the actual board
+      const boardResponse = await fetch(
         `http://localhost:5001/api/boards/${boardId}`,
         {
           headers: {
@@ -110,18 +112,31 @@ const hasSpawnedInitialCard = useRef(false);
         }
       );
 
-      if (response.ok) {
-        const data = await response.json();
+      // Fetch that board's toplevel tasks
+      const taskResponse = await fetch(
+        `http://localhost:5001/api/tasks/board/${boardId}`,
+        {
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+
+
+      if (boardResponse.ok && taskResponse.ok) {
+        const boardData = await boardResponse.json();
+        const taskData = await taskResponse.json();
         const formattedData = {
-          "title": data.board.title,
-          "_id": data.board._id,
-          "tasks": data.tasks,
+          "title": boardData.board.title,
+          "_id": boardData.board._id,
+          "tasks": taskData.tasks,
           "layer": 0,
           "offsetY": 0,
           "isRoot": true
         }
 
-        console.log("ID: ", data.board._id);
+        console.log("Board ID: ", boardData.board._id);
+        console.log("Board data: ", formattedData.tasks);
 
         localStorage.setItem("boardId", boardId);
         
