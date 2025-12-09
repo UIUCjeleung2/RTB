@@ -29,6 +29,7 @@ interface TaskProps {
   onTitleChange: (newTitle: string) => void;
   onTasksChange?: () => void;
   onOptimisticToggle?: (taskId: string, currentCompleted: boolean) => void;
+  onClickSubtask: () => void;
 }
 
 declare const process: {
@@ -45,6 +46,7 @@ export default function Task({
   onTitleChange,
   onTasksChange,
   onOptimisticToggle,
+  onClickSubtask,
 }: TaskProps) {
 
   const DEBUG_BORDER = "1px solid red";
@@ -101,6 +103,7 @@ export default function Task({
 
   // Handlers for those actions
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
     setAnchorElement(event.currentTarget);
   };
 
@@ -271,9 +274,6 @@ export default function Task({
           {/* If we wanna rename the Task, a Textfield will appear */}
           <Box id="header" sx= {{display: "flex", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Box
-            onClick={() => {
-              if (!isEditing) setIsEditing(true);
-            }}
             sx={{ cursor: 'pointer', flexGrow: 1, display: 'flex', alignItems: 'center', gap: 1 }}
           >
             <IconButton

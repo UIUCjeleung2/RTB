@@ -238,6 +238,7 @@ export default function TaskList({ boardId, tasks = [], onTasksChange, onClickSu
                         onTitleChange={(newTitle) => handleUpdateTaskTitle(task._id, newTitle)}
                         onTasksChange={handleTasksRefresh}
                         onOptimisticToggle={handleOptimisticToggle}
+                        onClickSubtask={() => onClickSubtask(task._id)}
                     />
                 ))}
             </Box>

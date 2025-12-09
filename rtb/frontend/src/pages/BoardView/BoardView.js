@@ -14,6 +14,7 @@ export default function BoardView() {
   const { boardId } = useParams();
   const navigate = useNavigate();
   const [board, setBoard] = useState(null);
+  const [layer, setLayer] = useState(0);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -175,7 +176,7 @@ export default function BoardView() {
           <Typography variant="body1" color="black">+ Add Task</Typography>
         </AddTask> */}
 
-        <TaskList boardId={boardId} tasks={tasks} onTasksChange={setTasks} />
+        <TaskList boardId={boardId} tasks={tasks} onTasksChange={setTasks} onClickSubtask={onClickSubtask} />
 
       </BoardCard>
 
