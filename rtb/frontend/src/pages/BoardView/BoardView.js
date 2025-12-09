@@ -20,6 +20,8 @@ export default function BoardView() {
   
   const onClickSubtask = (taskId) => {
     console.log(taskId);
+
+    fetchTaskBoard(taskId);
   }
 
   useEffect(() => {
@@ -60,7 +62,7 @@ export default function BoardView() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5001/api/tasks/${taskId}`,
+        `http://localhost:5001/api/boards/${boardId}`,
         {
           headers: {
             Authorization: token,
@@ -71,13 +73,11 @@ export default function BoardView() {
       if (response.ok) {
         const data = await response.json();
         // TODO: Make this update board list instead of board
-        
         //setBoard(data.board);
-        console.log(data.board);
+        console.log(data.board.tasks);
       } else {
-        console.error("Failed to fetch board");
-        alert("Board not found");
-        navigate("/dashboard");
+        console.error("Failed to fetch task");
+        alert("Task list not found");
       }
     } catch (error) {
       console.error("Error fetching board:", error);

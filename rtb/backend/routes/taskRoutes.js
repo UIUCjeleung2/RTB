@@ -1,7 +1,10 @@
 import express from "express";
 import Task from "../models/Task.js";
+import { getTask } from "../controllers/taskController.js"
 
 const router = express.Router();
+
+router.patch("/:taskId", getTask)
 
 router.patch("/:id/toggle-complete", async (req, res) => {
   try {
