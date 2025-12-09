@@ -275,6 +275,7 @@ export default function Task({
           <Box id="header" sx= {{display: "flex", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Box
             sx={{ cursor: 'pointer', flexGrow: 1, display: 'flex', alignItems: 'center', gap: 1 }}
+            onClick={(e) => { if(isEditing) e.stopPropagation(); }}
           >
             <IconButton
               size="small"

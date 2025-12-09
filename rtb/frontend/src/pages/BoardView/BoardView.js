@@ -14,7 +14,6 @@ export default function BoardView() {
   const { boardId } = useParams();
   const navigate = useNavigate();
   const [layer, setLayer] = useState(0);
-  const [tasks, setTasks] = useState([]);
   const [boardStack, setBoardStack] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -115,10 +114,14 @@ const hasSpawnedInitialCard = useRef(false);
         const data = await response.json();
         const formattedData = {
           "title": data.board.title,
+          "_id": data.board._id,
           "tasks": data.tasks,
           "layer": 0,
-          "offsetY:": 0
+          "offsetY": 0,
+          "isRoot": true
         }
+
+        console.log("ID: ", data.board._id);
 
         localStorage.setItem("boardId", boardId);
         
@@ -153,12 +156,13 @@ const hasSpawnedInitialCard = useRef(false);
         const data = await response.json();
         const formattedData = {
           "title": data.task.title,
+          "_id": data.task._id,
           "tasks": data.task.subtasks,
           "layer": 0,
-          "offsetY:": 0
+          "offsetY": 0,
+          "isRoot": false
         }
-
-        console.log("Subtasks: ", data)
+        console.log("TASK ID: ", data.task._id);
 
         spawnBoardCard(formattedData, 0)
       } else {
@@ -241,7 +245,7 @@ const hasSpawnedInitialCard = useRef(false);
             </IconButton>
         </Box>
 
-        <TaskList boardId={boardId} tasks={board.tasks} onTasksChange={setTasks} onClickSubtask={onClickSubtask} />
+        <TaskList boardId={boardId} taskId = {board.isRoot ? 'none' : board._id} tasks={board.tasks} onClickSubtask={onClickSubtask} />
 
       </BoardCard>      
     ))}

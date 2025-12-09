@@ -42,7 +42,7 @@ export default function SubtaskList({subtasks, onToggle, onDelete, onRename, onO
                             {task.completed ? <CheckCircleIcon color="success"/> : <CheckCircleOutlineIcon />}
                         </IconButton>
                         <Box 
-                          onClick={() => setEditingId(task._id)}
+                          onClick={(e) => {e.stopPropagation(); setEditingId(task._id); }}
                           sx={{ cursor: 'pointer', flex: 1 }}
                         >
                           <EditableText 

@@ -14,23 +14,24 @@ interface TaskItem {
 interface TaskListProps {
   boardId?: string;
   tasks?: TaskItem[];
-  onTasksChange?: (tasks: TaskItem[]) => void;
   onClickSubtask: (taskId: string) => void;
+  taskId: string;
+  isRoot: boolean;
 }
 
 // The TaskList holds all the task cards in a scrollable area
 // and fixes the Add Task button at the bottom.
 
-export default function TaskList({ boardId, tasks = [], onTasksChange, onClickSubtask}: TaskListProps) {
+export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, isRoot}: TaskListProps) {
     const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
     const [numberOfSubtasks, setNumberOfSubtasks] = useState(0);
     const [completed, setCompleted] = useState(0);
     const token = localStorage.getItem("token");
 
-    /*useEffect(() => {
+    useEffect(() => {
         setLocalTasks(tasks);
         calculateProgress(tasks);
-    }, [tasks]);*/
+    }, [tasks]);
 
     // Helper: Apply cascading completion logic locally
     const applyCascadeLocally = (taskList: TaskItem[], taskId: string, newCompleted: boolean): TaskItem[] => {
@@ -125,9 +126,14 @@ export default function TaskList({ boardId, tasks = [], onTasksChange, onClickSu
                         "Content-Type": "application/json",
                         Authorization: token,
                     },
-                    body: JSON.stringify({
-                        title: "New Task",
-                    }),
+                    body: isRoot ? 
+                        JSON.stringify({
+                            title: "New Task",
+                        })
+                        : JSON.stringify({
+                            title: "New Subtask",
+                            parentTaskId: taskId,
+                        })
                 }
             );
 
@@ -135,7 +141,6 @@ export default function TaskList({ boardId, tasks = [], onTasksChange, onClickSu
                 const data = await response.json();
                 const newTasks = [...localTasks, data.task];
                 setLocalTasks(newTasks);
-                onTasksChange?.(newTasks);
             }
         } catch (error) {
             console.error("Error adding task:", error);
@@ -160,7 +165,6 @@ export default function TaskList({ boardId, tasks = [], onTasksChange, onClickSu
                 const data = await response.json();
                 const updatedTasks = updateTaskInList(localTasks, taskId, data.task);
                 setLocalTasks(updatedTasks);
-                onTasksChange?.(updatedTasks);
             }
         } catch (error) {
             console.error("Error updating task:", error);
@@ -200,7 +204,6 @@ export default function TaskList({ boardId, tasks = [], onTasksChange, onClickSu
                 const data = await response.json();
                 setLocalTasks(data.tasks);
                 calculateProgress(data.tasks);
-                onTasksChange?.(data.tasks);
             }
         } catch (error) {
             console.error("Error refreshing tasks:", error);
