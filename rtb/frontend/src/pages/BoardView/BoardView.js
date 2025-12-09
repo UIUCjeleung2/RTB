@@ -22,10 +22,6 @@ export default function BoardView() {
     fetchBoard();
   }, [boardId]);
 
-  useEffect(() => {
-    fetchBoard();
-  }, [boardId]);
-
   const fetchBoard = async () => {
     try {
       const token = localStorage.getItem("token");
