@@ -13,17 +13,23 @@ import {Typography, Box, Menu, MenuItem, TextField, ClickAwayListener} from "@mu
 import EditableText from './EditableText.tsx';
 import SubtaskList from './SubtaskList.tsx';
 
-interface TaskProps {
+interface SubtaskItem {
+  _id: string;
   title: string;
-  onTitleChange: (newTitle: string) => void;
-  onSubtaskCreate: () => void;
-  onSubtaskCheck: () => void;
-  onSubtaskUncheck: () => void;
-  onSubtaskDelete: () => void;
-  onClickSubtask: () => void;
+  completed: boolean;
+  status: string;
+  subtasks?: SubtaskItem[];
 }
 
-// I also have to pass the above functions to the SubtaskList, so that I can activate them
+interface TaskProps {
+  taskId: string;
+  title: string;
+  completed?: boolean;
+  subtasks?: SubtaskItem[];
+  onTitleChange: (newTitle: string) => void;
+  onTasksChange?: () => void;
+  onOptimisticToggle?: (taskId: string, currentCompleted: boolean) => void;
+}
 
 declare const process: {
   env: {
@@ -31,49 +37,70 @@ declare const process: {
   };
 };
 
-export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCheck, onSubtaskUncheck, onSubtaskDelete, onClickSubtask} : TaskProps) {
+export default function Task({
+  taskId,
+  title,
+  completed = false,
+  subtasks = [],
+  onTitleChange,
+  onTasksChange,
+  onOptimisticToggle,
+}: TaskProps) {
 
   const DEBUG_BORDER = "1px solid red";
+  const token = localStorage.getItem("token");
+  const boardId = localStorage.getItem("boardId");
 
   // Handles the opening and closing of the Menu on the three dots
   const [anchorElement, setAnchorElement] = React.useState<null | HTMLElement>(null);
-  const [completed, setCompleted] = React.useState(false);
+  const [isCompleted, setIsCompleted] = React.useState(completed);
   const open = Boolean(anchorElement);
-  const completionPercent = completed ? 100 : 0;
+  const completionPercent = isCompleted ? 100 : 0;
 
+  // Sync isCompleted with completed prop when it changes
+  React.useEffect(() => {
+    setIsCompleted(completed);
+  }, [completed]);
 
-  // const handleToggleComplete = async () => {
-  //   // Instant UI toggle
-  //   setCompleted((prev) => !prev);
-    
+  const handleToggleComplete = async () => {
+    // Optimistic update - instant UI response
+    if (onOptimisticToggle) {
+      onOptimisticToggle(taskId, completed);
+    }
 
-  //   try {
-      
-  //     const response = await fetch(
-        
-  //       `${process.env.REACT_APP_BACKEND_URL}/api/tasks/${taskId}/toggle-complete`,
-  //       {
-  //         method: "PATCH",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //       }
-  //     );
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/${taskId}/toggle-complete`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+        }
+      );
 
-  //     const updatedTask = await response.json();
-
-  //     // Sync with backend
-  //     setCompleted(updatedTask.completed);
-  //   } catch (err) {
-  //     console.error("Error toggling complete:", err);
-  //   }
-  // };
-
-  
+      if (response.ok) {
+        // Refresh all tasks from server to sync with backend state
+        onTasksChange?.();
+      } else {
+        // Revert on error
+        console.error("Toggle failed, reverting");
+        if (onOptimisticToggle) {
+          onOptimisticToggle(taskId, !completed);
+        }
+      }
+    } catch (err) {
+      console.error("Error toggling complete:", err);
+      // Revert on error
+      if (onOptimisticToggle) {
+        onOptimisticToggle(taskId, !completed);
+      }
+    }
+  };
 
   // Handlers for those actions
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    event.stopPropagation();
     setAnchorElement(event.currentTarget);
   };
 
@@ -91,19 +118,148 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
     handleClose();
   }
 
-  // Handle adding a step
-  const [subtasks, setSubtasks] = React.useState<string[]>([]);
-  const [completedSubtasks, setCompletedSubtasks] = React.useState<boolean[]>([]);
-  const handleAddStep = () => {
-    setSubtasks(prev => [...prev, `Subtask ${subtasks.length}`]);
-    setCompletedSubtasks(prev => [...prev, false]);
-    onSubtaskCreate();
-  }
+  // No local subtask state - rely on props and server refresh
 
-  React.useEffect(() => {
-    console.log(subtasks);
-    console.log(completedSubtasks);
-  }, [subtasks, completedSubtasks]);
+  const handleAddStep = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/board/${boardId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+          body: JSON.stringify({
+            title: "New Subtask",
+            parentTaskId: taskId,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        // Refresh all tasks from server
+        onTasksChange?.();
+      }
+    } catch (error) {
+      console.error("Error adding subtask:", error);
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/${taskId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Task deleted successfully - parent component should refresh
+        handleClose();
+        onTasksChange?.();
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  };
+
+  const handleDeleteSubtask = async (subtaskId: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/${subtaskId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Refresh all tasks from server
+        onTasksChange?.();
+      }
+    } catch (error) {
+      console.error("Error deleting subtask:", error);
+    }
+  };
+
+  const handleToggleSubtaskComplete = async (subtaskId: string) => {
+    // Find subtask to get its current completed state
+    const findSubtask = (tasks: SubtaskItem[], id: string): SubtaskItem | null => {
+      for (const task of tasks) {
+        if (task._id === id) return task;
+        if (task.subtasks) {
+          const found = findSubtask(task.subtasks, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const subtask = findSubtask(subtasks, subtaskId);
+    if (subtask && onOptimisticToggle) {
+      // Optimistic update
+      onOptimisticToggle(subtaskId, subtask.completed);
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/${subtaskId}/toggle-complete`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Refresh all tasks from server to sync
+        onTasksChange?.();
+      } else {
+        // Revert on error
+        if (subtask && onOptimisticToggle) {
+          onOptimisticToggle(subtaskId, !subtask.completed);
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling subtask complete:", error);
+      // Revert on error
+      if (subtask && onOptimisticToggle) {
+        onOptimisticToggle(subtaskId, !subtask.completed);
+      }
+    }
+  };
+
+  const handleRenameSubtask = async (subtaskId: string, newTitle: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/${subtaskId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+          body: JSON.stringify({ title: newTitle }),
+        }
+      );
+
+      if (response.ok) {
+        // Refresh all tasks from server
+        onTasksChange?.();
+      }
+    } catch (error) {
+      console.error("Error renaming subtask:", error);
+    }
+  };
 
   return (
     // The actual card
@@ -114,12 +270,32 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
 
           {/* If we wanna rename the Task, a Textfield will appear */}
           <Box id="header" sx= {{display: "flex", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          <EditableText
-            title={title}
-            onTitleChange={onTitleChange}
-            isEditing={isEditing}
-            setIsEditing={setIsEditing}
-          />
+          <Box
+            onClick={() => {
+              if (!isEditing) setIsEditing(true);
+            }}
+            sx={{ cursor: 'pointer', flexGrow: 1, display: 'flex', alignItems: 'center', gap: 1 }}
+          >
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleComplete();
+              }}
+            >
+              {isCompleted ? (
+                <CheckCircleIcon sx={{ color: "green" }} />
+              ) : (
+                <CheckCircleOutlineIcon />
+              )}
+            </IconButton>
+            <EditableText
+              title={title}
+              onTitleChange={onTitleChange}
+              isEditing={isEditing}
+              setIsEditing={setIsEditing}
+            />
+          </Box>
 
             <IconButton aria-label="settings" onClick={handleOpen}>
               <MoreVertIcon />
@@ -132,7 +308,8 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
               onClick={(event) => { event.stopPropagation() }}  // Prevents accidental triggering of opening a subtask
             >
               <MenuItem onClick={handleRename}>Rename</MenuItem>
-              <MenuItem onClick={handleAddStep}>Add Step</MenuItem>
+              <MenuItem onClick={handleAddStep}>Add Subtask</MenuItem>
+              <MenuItem onClick={handleDeleteTask}>Delete</MenuItem>
               <MenuItem onClick={handleClose}>Change Color</MenuItem>
             </Menu>
           </Box>
@@ -141,26 +318,10 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
               {subtasks.length > 0 && (
                 <SubtaskList
                   subtasks={subtasks}
-                  completed={completedSubtasks}
-                  onToggle={(index: number) => {
-                      if (completedSubtasks[index] === false) {
-                        onSubtaskCheck();
-                      } else {
-                        onSubtaskUncheck();                        
-                      }
-                      setCompletedSubtasks(prev =>
-                        prev.map((val, i) => (i === index ? !val : val))
-                      );
-                    }
-                  }
-                  onDelete={(index: number) => {
-                    setSubtasks(prev => prev.filter((_, i) => i !== index));
-                    setCompletedSubtasks(prev => prev.filter((_, i) => i !== index));
-                    if (completedSubtasks[index] === true) {
-                      onSubtaskUncheck();
-                    }
-                    onSubtaskDelete();
-                  }}
+                  onToggle={handleToggleSubtaskComplete}
+                  onDelete={handleDeleteSubtask}
+                  onRename={handleRenameSubtask}
+                  onOptimisticToggle={onOptimisticToggle}
                 />
               )}
 
@@ -171,12 +332,4 @@ export default function Task({title, onTitleChange, onSubtaskCreate, onSubtaskCh
 </Card>
 
   );
-}
-
-function enterSubtask() {
-  // TODO:
-  // - Spawn new BoardCard with relevant data
-  // - Push other things to the back
-
-  console.log("Clicked")
 }

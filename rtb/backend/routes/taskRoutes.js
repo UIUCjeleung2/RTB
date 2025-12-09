@@ -1,25 +1,39 @@
 import express from "express";
-import Task from "../models/Task.js";
-import { getTask } from "../controllers/taskController.js"
+import {
+  getBoardTasks,
+  getTask,
+  createTask,
+  updateTask,
+  toggleTaskComplete,
+  deleteTask,
+  reorderTasks
+} from "../controllers/taskController.js";
+import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.patch("/:taskId", getTask)
+// All routes require authentication
+router.use(auth);
 
-router.patch("/:id/toggle-complete", async (req, res) => {
-  try {
-    const task = await Task.findById(req.params.id);
+// Reorder tasks (must come before /:taskId to avoid route conflict)
+router.patch("/reorder", reorderTasks);
 
-    if (!task) return res.status(404).json({ message: "Task not found" });
+// Get all root tasks for a board (with nested subtasks)
+router.get("/board/:boardId", getBoardTasks);
 
-    task.completed = !task.completed;
-    await task.save();
+// Create new task (can be root or subtask)
+router.post("/board/:boardId", createTask);
 
-    res.json(task);
-  } catch (err) {
-    console.error("Toggle complete error:", err);
-    res.status(500).json({ message: "Server error toggling task complete" });
-  }
-});
+// Toggle task complete status (must come before /:taskId)
+router.patch("/:taskId/toggle-complete", toggleTaskComplete);
+
+// Update task
+router.patch("/:taskId", updateTask);
+
+// Get single task with all subtasks
+router.get("/:taskId", getTask);
+
+// Delete task and all subtasks
+router.delete("/:taskId", deleteTask);
 
 export default router;

@@ -14,8 +14,8 @@ export default function BoardView() {
   const { boardId } = useParams();
   const navigate = useNavigate();
   const [board, setBoard] = useState(null);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [layer, setLayer] = useState(0);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   
   const onClickSubtask = (taskId) => {
@@ -43,7 +43,22 @@ export default function BoardView() {
       if (response.ok) {
         const data = await response.json();
         setBoard(data.board);
-        console.log(data.board);
+        localStorage.setItem("boardId", boardId);
+        
+        // Fetch tasks for this board
+        const tasksResponse = await fetch(
+          `http://localhost:5001/api/tasks/board/${boardId}`,
+          {
+            headers: {
+              Authorization: token,
+            },
+          }
+        );
+        
+        if (tasksResponse.ok) {
+          const tasksData = await tasksResponse.json();
+          setTasks(tasksData.tasks);
+        }
       } else {
         console.error("Failed to fetch board");
         alert("Board not found");
@@ -109,7 +124,7 @@ export default function BoardView() {
   }
 
   return (
-    <div className="board-view" style={{backgroundColor: "#282c34", zIndex: -1}}>
+    <div className="board-view" style={{backgroundColor: "#282c34"}}>
 
       {/* This is the navbar at the top of the page*/}
       <div className="board-navbar">        
@@ -140,14 +155,12 @@ export default function BoardView() {
             p: 1,                          // Adds a little padding around the whole group
             border: '1px solid #ccc',    // Just to visualize the container boundaries
             width: "95%"
-
-            // We gotta figure out how to make BoardCards appear on top of each other
           }}
         >
             <IconButton variant="outlined">
               <ArrowUpward sx={{color:"blue"}}/>
             </IconButton>
-            <TextField value = {board.title} fullWidth>
+            <TextField value = "Task Name" fullWidth>
 
             </TextField>
             {/* <Typography variant="h6" component="h2" sx={{flex: 1, textAlign: "center"}}>Task Name</Typography> */}
@@ -162,14 +175,9 @@ export default function BoardView() {
           <Typography variant="body1" color="black">+ Add Task</Typography>
         </AddTask> */}
 
-        <TaskList onClickSubtask={onClickSubtask}/>
+        <TaskList boardId={boardId} tasks={tasks} onTasksChange={setTasks} />
 
       </BoardCard>
-
-
-
-
-
 
       {/* <div className="board-content">
         <div className="board-info-card">

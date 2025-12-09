@@ -5,6 +5,10 @@ import "./Dashboard.css";
 export default function Dashboard() {
   const [boards, setBoards] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [boardToDelete, setBoardToDelete] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [boardToEdit, setBoardToEdit] = useState(null);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
@@ -65,52 +69,101 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteBoard = async (boardId) => {
-    // IMPORTANT: Replace this with a custom confirmation modal in your UI
-    const isConfirmed = window.confirm(
-      "Are you sure you want to permanently delete this board? This cannot be undone."
-    );
-    
-    if (!isConfirmed) {
-      return;
-    }
+  const handleDeleteBoard = (boardId) => {
+    const board = boards.find(b => b._id === boardId);
+    setBoardToDelete(board);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDeleteBoard = async () => {
+    if (!boardToDelete) return;
 
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        // Replace with custom notification/redirect
         console.error("Authorization token not found.");
-        return; 
+        return;
       }
 
-      // Use DELETE method and include the board ID in the URL for the RESTful endpoint
-      const response = await fetch(`http://localhost:5001/api/boards/${boardId}`, {
+      const response = await fetch(`http://localhost:5001/api/boards/${boardToDelete._id}`, {
         method: "DELETE",
         headers: {
-          Authorization: token, // Pass the authentication token
+          Authorization: token,
         },
       });
 
       if (response.ok) {
-        // Filter out the deleted board from the local state list
-        const updatedBoards = boards.filter(board => board._id !== boardId);
+        const updatedBoards = boards.filter(board => board._id !== boardToDelete._id);
         setBoards(updatedBoards);
-        
-        console.log(`Board with ID ${boardId} successfully deleted.`);
-        // Replace with custom success toast/notification UI
-        // showSuccessNotification("Board deleted successfully!");
+        console.log(`Board with ID ${boardToDelete._id} successfully deleted.`);
       } else {
-        // Handle non-200 responses (e.g., 404 Not Found, 401 Unauthorized)
         const errorData = await response.json().catch(() => ({ message: "Server error" }));
         console.error("Failed to delete board:", errorData.message);
-        // Replace with custom error notification UI
-        // showErrorNotification(`Failed to delete board: ${errorData.message}`);
+        alert(`Failed to delete board: ${errorData.message}`);
       }
     } catch (error) {
       console.error("Network or unexpected error deleting board:", error);
-      // Replace with custom error notification UI
-      // showErrorNotification("Network error occurred while deleting board.");
+      alert("Network error occurred while deleting board.");
+    } finally {
+      setDeleteModalOpen(false);
+      setBoardToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setBoardToDelete(null);
+  };
+
+  const handleEditBoard = (boardId) => {
+    const board = boards.find(b => b._id === boardId);
+    setBoardToEdit(board);
+    setEditModalOpen(true);
+  };
+
+  const confirmEditBoard = async (newTitle) => {
+    if (!boardToEdit || !newTitle.trim()) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Authorization token not found.");
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5001/api/boards/${boardToEdit._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({ title: newTitle.trim() }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const updatedBoards = boards.map(board =>
+          board._id === boardToEdit._id ? { ...board, title: data.board.title } : board
+        );
+        setBoards(updatedBoards);
+        console.log(`Board with ID ${boardToEdit._id} successfully renamed.`);
+      } else {
+        const errorData = await response.json().catch(() => ({ message: "Server error" }));
+        console.error("Failed to update board:", errorData.message);
+        alert(`Failed to update board: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error("Network or unexpected error updating board:", error);
+      alert("Network error occurred while updating board.");
+    } finally {
+      setEditModalOpen(false);
+      setBoardToEdit(null);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditModalOpen(false);
+    setBoardToEdit(null);
   };
 
   return (
@@ -121,7 +174,81 @@ export default function Dashboard() {
         loading={loading}
         onCreateBoard={handleCreateBoard}
         onDeleteBoard={handleDeleteBoard}
+        onEditBoard={handleEditBoard}
       />
+      {deleteModalOpen && boardToDelete && (
+        <DeleteConfirmationModal
+          board={boardToDelete}
+          onConfirm={confirmDeleteBoard}
+          onCancel={cancelDelete}
+        />
+      )}
+      {editModalOpen && boardToEdit && (
+        <EditBoardModal
+          board={boardToEdit}
+          onConfirm={confirmEditBoard}
+          onCancel={cancelEdit}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditBoardModal({ board, onConfirm, onCancel }) {
+  const [inputValue, setInputValue] = useState(board.title);
+
+  const handleConfirm = () => {
+    if (inputValue.trim() && inputValue.trim() !== board.title) {
+      onConfirm(inputValue);
+    } else if (inputValue.trim() === board.title) {
+      onCancel(); // No changes made
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleConfirm();
+    } else if (e.key === "Escape") {
+      onCancel();
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Edit Board Name</h2>
+          <button className="modal-close" onClick={onCancel}>
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
+          <p className="modal-description">
+            Enter a new name for this board:
+          </p>
+          <input
+            type="text"
+            className="modal-input"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder="Board name"
+            autoFocus
+          />
+        </div>
+        <div className="modal-footer">
+          <button className="modal-btn modal-btn-cancel" onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            className="modal-btn modal-btn-confirm"
+            onClick={handleConfirm}
+            disabled={!inputValue.trim() || inputValue.trim() === board.title}
+          >
+            Save
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -156,7 +283,7 @@ function Navbar({ user }) {
   );
 }
 
-function BoardContainer({ boards, loading, onCreateBoard, onDeleteBoard }) {
+function BoardContainer({ boards, loading, onCreateBoard, onDeleteBoard, onEditBoard }) {
   const navigate = useNavigate();
 
   const handleBoardClick = (boardId) => {
@@ -187,7 +314,26 @@ function BoardContainer({ boards, loading, onCreateBoard, onDeleteBoard }) {
                   ? "No tasks yet"
                   : `${board.taskCount} task${board.taskCount !== 1 ? "s" : ""}`}
               </p>
-            <p onClick={() => {onDeleteBoard(board._id)}}>Delete board (move to menu later)</p>
+            <div className="board-actions">
+              <button
+                className="board-action-btn board-edit-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditBoard(board._id);
+                }}
+              >
+                Edit
+              </button>
+              <button
+                className="board-action-btn board-delete-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteBoard(board._id);
+                }}
+              >
+                Delete
+              </button>
+            </div>
             </div>
           </div>
         ))}
@@ -203,6 +349,78 @@ function BoardContainer({ boards, loading, onCreateBoard, onDeleteBoard }) {
           <p>No boards yet. Click "Create New Board" to get started!</p>
         </div>
       )}
+    </div>
+  );
+}
+
+function DeleteConfirmationModal({ board, onConfirm, onCancel }) {
+  const [inputValue, setInputValue] = useState("");
+  const [error, setError] = useState("");
+
+  const handleConfirm = () => {
+    if (inputValue.trim() === board.title.trim()) {
+      onConfirm();
+    } else {
+      setError("Board name does not match. Please try again.");
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+    if (error) setError(""); // Clear error when user starts typing
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleConfirm();
+    } else if (e.key === "Escape") {
+      onCancel();
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Delete Board</h2>
+          <button className="modal-close" onClick={onCancel}>
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
+          <p className="modal-warning">
+            ⚠️ This action is permanent and cannot be undone.
+          </p>
+          <p className="modal-description">
+            All tasks and subtasks in this board will be permanently deleted.
+          </p>
+          <p className="modal-instruction">
+            To confirm, type <strong>{board.title}</strong> below:
+          </p>
+          <input
+            type="text"
+            className={`modal-input ${error ? "modal-input-error" : ""}`}
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyPress}
+            placeholder="Enter board name"
+            autoFocus
+          />
+          {error && <p className="modal-error">{error}</p>}
+        </div>
+        <div className="modal-footer">
+          <button className="modal-btn modal-btn-cancel" onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            className="modal-btn modal-btn-delete"
+            onClick={handleConfirm}
+            disabled={!inputValue.trim()}
+          >
+            Delete Board
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
