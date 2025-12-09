@@ -187,10 +187,15 @@ function BoardContainer({ boards, loading, onCreateBoard, onDeleteBoard }) {
                   ? "No tasks yet"
                   : `${board.taskCount} task${board.taskCount !== 1 ? "s" : ""}`}
               </p>
-            <p onClick={(e) => {
-              e.stopPropagation(); // Prevent triggering parent's board click
-              onDeleteBoard(board._id);
-            }}>Delete board (move to menu later)</p>
+            <button
+              className="board-delete-btn"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent triggering parent's board click
+                onDeleteBoard(board._id);
+              }}
+            >
+              Delete
+            </button>
             </div>
           </div>
         ))}

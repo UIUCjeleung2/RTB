@@ -133,6 +133,23 @@
   margin: 0;
 }
 
+.board-delete-btn {
+  margin-top: 12px;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.board-delete-btn:hover {
+  background-color: #ff7875;
+}
+
 /* New Board Card */
 .board-card-new {
   border: 2px dashed #d9d9d9;
