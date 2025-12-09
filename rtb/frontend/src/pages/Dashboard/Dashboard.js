@@ -7,6 +7,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [boardToEdit, setBoardToEdit] = useState(null);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
@@ -113,6 +115,57 @@ export default function Dashboard() {
     setBoardToDelete(null);
   };
 
+  const handleEditBoard = (boardId) => {
+    const board = boards.find(b => b._id === boardId);
+    setBoardToEdit(board);
+    setEditModalOpen(true);
+  };
+
+  const confirmEditBoard = async (newTitle) => {
+    if (!boardToEdit || !newTitle.trim()) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Authorization token not found.");
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5001/api/boards/${boardToEdit._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({ title: newTitle.trim() }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const updatedBoards = boards.map(board =>
+          board._id === boardToEdit._id ? { ...board, title: data.board.title } : board
+        );
+        setBoards(updatedBoards);
+        console.log(`Board with ID ${boardToEdit._id} successfully renamed.`);
+      } else {
+        const errorData = await response.json().catch(() => ({ message: "Server error" }));
+        console.error("Failed to update board:", errorData.message);
+        alert(`Failed to update board: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error("Network or unexpected error updating board:", error);
+      alert("Network error occurred while updating board.");
+    } finally {
+      setEditModalOpen(false);
+      setBoardToEdit(null);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditModalOpen(false);
+    setBoardToEdit(null);
+  };
+
   return (
     <div className="dashboard">
       <Navbar user={user} />
@@ -121,6 +174,7 @@ export default function Dashboard() {
         loading={loading}
         onCreateBoard={handleCreateBoard}
         onDeleteBoard={handleDeleteBoard}
+        onEditBoard={handleEditBoard}
       />
       {deleteModalOpen && boardToDelete && (
         <DeleteConfirmationModal
@@ -129,6 +183,72 @@ export default function Dashboard() {
           onCancel={cancelDelete}
         />
       )}
+      {editModalOpen && boardToEdit && (
+        <EditBoardModal
+          board={boardToEdit}
+          onConfirm={confirmEditBoard}
+          onCancel={cancelEdit}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditBoardModal({ board, onConfirm, onCancel }) {
+  const [inputValue, setInputValue] = useState(board.title);
+
+  const handleConfirm = () => {
+    if (inputValue.trim() && inputValue.trim() !== board.title) {
+      onConfirm(inputValue);
+    } else if (inputValue.trim() === board.title) {
+      onCancel(); // No changes made
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleConfirm();
+    } else if (e.key === "Escape") {
+      onCancel();
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Edit Board Name</h2>
+          <button className="modal-close" onClick={onCancel}>
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
+          <p className="modal-description">
+            Enter a new name for this board:
+          </p>
+          <input
+            type="text"
+            className="modal-input"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder="Board name"
+            autoFocus
+          />
+        </div>
+        <div className="modal-footer">
+          <button className="modal-btn modal-btn-cancel" onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            className="modal-btn modal-btn-confirm"
+            onClick={handleConfirm}
+            disabled={!inputValue.trim() || inputValue.trim() === board.title}
+          >
+            Save
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -163,7 +283,7 @@ function Navbar({ user }) {
   );
 }
 
-function BoardContainer({ boards, loading, onCreateBoard, onDeleteBoard }) {
+function BoardContainer({ boards, loading, onCreateBoard, onDeleteBoard, onEditBoard }) {
   const navigate = useNavigate();
 
   const handleBoardClick = (boardId) => {
@@ -194,15 +314,26 @@ function BoardContainer({ boards, loading, onCreateBoard, onDeleteBoard }) {
                   ? "No tasks yet"
                   : `${board.taskCount} task${board.taskCount !== 1 ? "s" : ""}`}
               </p>
-            <button
-              className="board-delete-btn"
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent triggering parent's board click
-                onDeleteBoard(board._id);
-              }}
-            >
-              Delete
-            </button>
+            <div className="board-actions">
+              <button
+                className="board-action-btn board-edit-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditBoard(board._id);
+                }}
+              >
+                Edit
+              </button>
+              <button
+                className="board-action-btn board-delete-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteBoard(board._id);
+                }}
+              >
+                Delete
+              </button>
+            </div>
             </div>
           </div>
         ))}
