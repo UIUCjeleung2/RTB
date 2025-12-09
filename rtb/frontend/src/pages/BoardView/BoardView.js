@@ -245,7 +245,7 @@ const hasSpawnedInitialCard = useRef(false);
             </IconButton>
         </Box>
 
-        <TaskList boardId={boardId} taskId = {board.isRoot ? 'none' : board._id} tasks={board.tasks} onClickSubtask={onClickSubtask} />
+        <TaskList boardId={boardId} taskId = {board.isRoot ? boardId : board._id} tasks={board.tasks} onClickSubtask={onClickSubtask} isRoot={board.isRoot} />
 
       </BoardCard>      
     ))}

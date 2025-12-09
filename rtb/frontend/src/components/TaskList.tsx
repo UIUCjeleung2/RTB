@@ -141,6 +141,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, 
                 const data = await response.json();
                 const newTasks = [...localTasks, data.task];
                 setLocalTasks(newTasks);
+                handleTasksRefresh();
             }
         } catch (error) {
             console.error("Error adding task:", error);
