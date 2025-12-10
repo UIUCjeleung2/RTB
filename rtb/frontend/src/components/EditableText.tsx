@@ -31,11 +31,20 @@ export default function EditableText({title, onTitleChange, isEditing, setIsEdit
                }}
                size="small"
                autoFocus
-               fullWidth    
-    /> 
+               fullWidth
+    />
     </ClickAwayListener>
     ) : (
-        <Typography variant="h6" sx={{ p: 1 }}>
+        <Typography
+          variant="h6"
+          sx={{
+            p: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+          title={currentTitle}
+        >
             {currentTitle}
         </Typography>
     )

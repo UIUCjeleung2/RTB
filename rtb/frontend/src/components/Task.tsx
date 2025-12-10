@@ -297,7 +297,15 @@ export default function Task({
           {/* If we wanna rename the Task, a Textfield will appear */}
           <Box id="header" sx= {{display: "flex", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Box
-            sx={{ cursor: 'pointer', flexGrow: 1, display: 'flex', alignItems: 'center', gap: 1 }}
+            sx={{
+              cursor: 'pointer',
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              minWidth: 0,
+              overflow: 'hidden'
+            }}
             onClick={(e) => { if(isEditing) e.stopPropagation(); }}
           >
             <IconButton
@@ -306,6 +314,7 @@ export default function Task({
                 e.stopPropagation();
                 handleToggleComplete();
               }}
+              sx={{ flexShrink: 0 }}
             >
               {isCompleted ? (
                 <CheckCircleIcon sx={{ color: "green" }} />
@@ -313,28 +322,32 @@ export default function Task({
                 <CheckCircleOutlineIcon />
               )}
             </IconButton>
-            <EditableText
-              title={title}
-              onTitleChange={onTitleChange}
-              isEditing={isEditing}
-              setIsEditing={setIsEditing}
-            />
+            <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+              <EditableText
+                title={title}
+                onTitleChange={onTitleChange}
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+              />
+            </Box>
           </Box>
 
-            <Tooltip title="View notes">
-              <IconButton
-                aria-label="notes"
-                onClick={handleNotesClick}
-                sx={{
-                  color: isSelected ? '#1976d2' : 'inherit',
-                }}
-              >
-                <DescriptionIcon />
+            <Box sx={{ display: 'flex', flexShrink: 0 }}>
+              <Tooltip title="View notes">
+                <IconButton
+                  aria-label="notes"
+                  onClick={handleNotesClick}
+                  sx={{
+                    color: isSelected ? '#1976d2' : 'inherit',
+                  }}
+                >
+                  <DescriptionIcon />
+                </IconButton>
+              </Tooltip>
+              <IconButton aria-label="settings" onClick={handleOpen}>
+                <MoreVertIcon />
               </IconButton>
-            </Tooltip>
-            <IconButton aria-label="settings" onClick={handleOpen}>
-              <MoreVertIcon />
-            </IconButton>
+            </Box>
             <Menu
               anchorEl={anchorElement}
               open={open}

@@ -179,7 +179,11 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskSe
     const updateTaskInList = (taskList: TaskItem[], taskId: string, updatedTask: TaskItem): TaskItem[] => {
         return taskList.map(task => {
             if (task._id === taskId) {
-                return updatedTask;
+                // Preserve existing subtasks when updating
+                return {
+                    ...updatedTask,
+                    subtasks: task.subtasks || updatedTask.subtasks
+                };
             }
             if (task.subtasks) {
                 return {
