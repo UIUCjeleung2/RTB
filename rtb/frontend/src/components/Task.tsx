@@ -78,7 +78,7 @@ export default function Task({
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/tasks/${taskId}/toggle-complete`,
+        `https://rtbbackend-ng6n.onrender.com/api/tasks/${taskId}/toggle-complete`,
         {
           method: "PATCH",
           headers: {
@@ -132,7 +132,7 @@ export default function Task({
   const handleAddStep = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5001/api/tasks/board/${boardId}`,
+        `https://rtbbackend-ng6n.onrender.com/api/tasks/board/${boardId}`,
         {
           method: "POST",
           headers: {
@@ -158,7 +158,7 @@ export default function Task({
   const handleDeleteTask = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5001/api/tasks/${taskId}`,
+        `https://rtbbackend-ng6n.onrender.com/api/tasks/${taskId}`,
         {
           method: "DELETE",
           headers: {
@@ -180,7 +180,7 @@ export default function Task({
   const handleDeleteSubtask = async (subtaskId: string) => {
     try {
       const response = await fetch(
-        `http://localhost:5001/api/tasks/${subtaskId}`,
+        `https://rtbbackend-ng6n.onrender.com/api/tasks/${subtaskId}`,
         {
           method: "DELETE",
           headers: {
@@ -219,7 +219,7 @@ export default function Task({
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/tasks/${subtaskId}/toggle-complete`,
+        `https://rtbbackend-ng6n.onrender.com/api/tasks/${subtaskId}/toggle-complete`,
         {
           method: "PATCH",
           headers: {
@@ -250,7 +250,7 @@ export default function Task({
   const handleRenameSubtask = async (subtaskId: string, newTitle: string) => {
     try {
       const response = await fetch(
-        `http://localhost:5001/api/tasks/${subtaskId}`,
+        `https://rtbbackend-ng6n.onrender.com/api/tasks/${subtaskId}`,
         {
           method: "PATCH",
           headers: {

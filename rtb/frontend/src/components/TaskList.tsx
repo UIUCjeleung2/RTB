@@ -16,6 +16,8 @@ interface TaskListProps {
   boardId?: string;
   tasks?: TaskItem[];
   onClickSubtask: (taskId: string) => void;
+  onTaskRefresh: () => void; 
+  refreshVersion: Number;
   onTaskSelect?: (task: TaskItem) => void;
   selectedTaskId?: string;
   taskId: string;
@@ -25,17 +27,23 @@ interface TaskListProps {
 // The TaskList holds all the task cards in a scrollable area
 // and fixes the Add Task button at the bottom.
 
-export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskSelect, selectedTaskId, taskId, isRoot}: TaskListProps) {
+export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskRefresh, refreshVersion, onTaskSelect, selectedTaskId, taskId, isRoot}: TaskListProps) {
     const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
     const [numberOfSubtasks, setNumberOfSubtasks] = useState(0);
     const [completed, setCompleted] = useState(0);
     const token = localStorage.getItem("token");
 
     useEffect(() => {
+        handleTasksRefresh(); // TaskList performs its OWN fetch
+    }, [refreshVersion]);
+
+
+    useEffect(() => {
+    if (tasks !== localTasks) {
         setLocalTasks(tasks);
         calculateProgress(tasks);
-    }, [tasks]);
-
+    }}, [tasks]);
+    
     // Helper: Apply cascading completion logic locally
     const applyCascadeLocally = (taskList: TaskItem[], taskId: string, newCompleted: boolean): TaskItem[] => {
         const cascadeToChildren = (task: TaskItem, completed: boolean): TaskItem => {
@@ -123,7 +131,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskSe
         console.log("Creating task: ", isRoot, taskId);
         try {
             const response = await fetch(
-                `http://localhost:5001/api/tasks/board/${boardId}`,
+                `https://rtbbackend-ng6n.onrender.com/api/tasks/board/${boardId}`,
                 {
                     method: "POST",
                     headers: {
@@ -145,7 +153,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskSe
                 const data = await response.json();
                 const newTasks = [...localTasks, data.task];
                 setLocalTasks(newTasks);
-                handleTasksRefresh();
+                onTaskRefresh();
             }
         } catch (error) {
             console.error("Error adding task:", error);
@@ -155,7 +163,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskSe
     const handleUpdateTaskTitle = async (taskId: string, newTitle: string) => {
         try {
             const response = await fetch(
-                `http://localhost:5001/api/tasks/${taskId}`,
+                `https://rtbbackend-ng6n.onrender.com/api/tasks/${taskId}`,
                 {
                     method: "PATCH",
                     headers: {
@@ -170,6 +178,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskSe
                 const data = await response.json();
                 const updatedTasks = updateTaskInList(localTasks, taskId, data.task);
                 setLocalTasks(updatedTasks);
+                onTaskRefresh();
             }
         } catch (error) {
             console.error("Error updating task:", error);
@@ -201,7 +210,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskSe
 
         try {
             const response = await fetch(
-                isRoot ? `http://localhost:5001/api/tasks/board/${boardId}` : `http://localhost:5001/api/tasks/${taskId}`,
+                isRoot ? `https://rtbbackend-ng6n.onrender.com/api/tasks/board/${boardId}` : `https://rtbbackend-ng6n.onrender.com/api/tasks/${taskId}`,
                 {
                     headers: {
                         Authorization: token,
@@ -211,9 +220,9 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskSe
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("Refresh data:", data);
                 let tasks = isRoot ? data.tasks : data.task.subtasks;
-                
+                console.log("Tasks:", tasks);
+
                 setLocalTasks(tasks);
                 calculateProgress(tasks);
             }
