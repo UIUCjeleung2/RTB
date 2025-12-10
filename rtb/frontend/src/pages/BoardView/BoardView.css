@@ -1,3 +1,7 @@
+html, body, * {
+  font-family: "Inter", sans-serif !important;
+}
+
 /* Board View Container */
 .board-view {
   width: 100%;
@@ -69,6 +73,7 @@
 
 /* Board Info Card */
 .board-info-card {
+  display: none;
   background: white;
   border-radius: 8px;
   padding: 24px;
