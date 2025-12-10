@@ -39,7 +39,7 @@ export default function BoardView() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5001/api/tasks/${taskId}`,
+        `https://rtbbackend-ng6n.onrender.com/api/tasks/${taskId}`,
         {
           method: "PATCH",
           headers: {
@@ -319,25 +319,37 @@ const hasSpawnedInitialCard = useRef(false);
         }}>
           {boardStack.map(board => (
             <BoardCard key={board._id} sx = {{minWidth: 345, transform: `translateX(${-board.layer * 8}px) translateY(${board.layer * 8}px) translateZ(${-board.layer}px)`, opacity: Math.max(0, 1 - board.layer * 0.33), transition: "left 0.5s ease, transform 0.3 ease, opacity 0.3 ease"}}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'stretch',
-                  gap: 1,
-                  p: 1,
-                  border: '1px solid #ccc',
-                  width: "95%"
-                }}
-              >
-                <IconButton variant="outlined" onClick={()=> goUp()}>
-                  <ArrowUpward sx={{color:"blue"}}/>
-                </IconButton>
-                <TextField value = {board.title} fullWidth> </TextField>
-                <IconButton variant="outlined" onClick={() => spawnBoardCard("name", 500)}>
-                  <Check sx = {{color:"black"}}/>
-                </IconButton>
-              </Box>
+        <Box
+          sx={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            p: 1,
+            gap: 1,
+            width: "95%",
+          }}
+        >
+          <IconButton onClick={goUp}>
+            <ArrowUpward sx={{ color: "blue" }} />
+          </IconButton>
+
+          {/* Centered title */}
+          <Typography
+            variant="h5"
+            sx={{
+              position: "absolute",
+              left: "50%",
+              fontWeight: "bold",
+              transform: "translateX(-50%)",
+              whiteSpace: "nowrap",
+              pointerEvents: "none", // avoids blocking clicks
+            }}
+          >
+            {board.title}
+          </Typography>
+
+        </Box>
+
 
               <TaskList
                 boardId={boardId}
