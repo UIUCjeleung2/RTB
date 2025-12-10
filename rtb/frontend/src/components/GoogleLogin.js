@@ -12,7 +12,7 @@ export default function GoogleLogin() {
     try {
       // Send Google credential to our backend
       console.log("Sending credential to backend...");
-      const res = await fetch("http://localhost:5001/auth/google", {
+      const res = await fetch("https://rtbbackend-ng6n.onrender.com/auth/google", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

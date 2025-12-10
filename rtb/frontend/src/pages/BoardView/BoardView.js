@@ -109,7 +109,7 @@ const hasSpawnedInitialCard = useRef(false);
 
       // Fetch the actual board
       const boardResponse = await fetch(
-        `http://localhost:5001/api/boards/${boardId}`,
+        `https://rtbbackend-ng6n.onrender.com/api/boards/${boardId}`,
         {
           headers: {
             Authorization: token,
@@ -119,7 +119,7 @@ const hasSpawnedInitialCard = useRef(false);
 
       // Fetch that board's toplevel tasks
       const taskResponse = await fetch(
-        `http://localhost:5001/api/tasks/board/${boardId}`,
+        `https://rtbbackend-ng6n.onrender.com/api/tasks/board/${boardId}`,
         {
           headers: {
             Authorization: token,
@@ -164,7 +164,7 @@ const hasSpawnedInitialCard = useRef(false);
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5001/api/tasks/${taskId}`,
+        `https://rtbbackend-ng6n.onrender.com/api/tasks/${taskId}`,
         {
           headers: {
             Authorization: token,

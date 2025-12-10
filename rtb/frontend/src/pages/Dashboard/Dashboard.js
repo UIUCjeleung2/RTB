@@ -18,7 +18,7 @@ export default function Dashboard() {
   const fetchBoards = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5001/api/boards", {
+      const response = await fetch("https://rtbbackend-ng6n.onrender.com/api/boards", {
         headers: {
           Authorization: token,
         },
@@ -43,7 +43,7 @@ export default function Dashboard() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5001/api/boards", {
+      const response = await fetch("https://rtbbackend-ng6n.onrender.com/api/boards", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,7 +85,7 @@ export default function Dashboard() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5001/api/boards/${boardToDelete._id}`, {
+      const response = await fetch(`https://rtbbackend-ng6n.onrender.com/api/boards/${boardToDelete._id}`, {
         method: "DELETE",
         headers: {
           Authorization: token,
@@ -131,7 +131,7 @@ export default function Dashboard() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5001/api/boards/${boardToEdit._id}`, {
+      const response = await fetch(`https://rtbbackend-ng6n.onrender.com/api/boards/${boardToEdit._id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
