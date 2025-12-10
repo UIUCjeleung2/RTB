@@ -117,6 +117,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, 
     const addTask = async () => {
         if (!boardId) return;
 
+        console.log("Creating task: ", isRoot, taskId);
         try {
             const response = await fetch(
                 `http://localhost:5001/api/tasks/board/${boardId}`,
@@ -193,7 +194,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, 
 
         try {
             const response = await fetch(
-                `http://localhost:5001/api/tasks/board/${boardId}`,
+                isRoot ? `http://localhost:5001/api/tasks/board/${boardId}` : `http://localhost:5001/api/tasks/${taskId}`,
                 {
                     headers: {
                         Authorization: token,
@@ -203,8 +204,11 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, 
 
             if (response.ok) {
                 const data = await response.json();
-                setLocalTasks(data.tasks);
-                calculateProgress(data.tasks);
+                console.log("Refresh data:", data);
+                let tasks = isRoot ? data.tasks : data.task.subtasks;
+                
+                setLocalTasks(tasks);
+                calculateProgress(tasks);
             }
         } catch (error) {
             console.error("Error refreshing tasks:", error);
