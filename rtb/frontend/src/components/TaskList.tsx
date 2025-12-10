@@ -15,6 +15,8 @@ interface TaskListProps {
   boardId?: string;
   tasks?: TaskItem[];
   onClickSubtask: (taskId: string) => void;
+  onTaskRefresh: () => void; 
+  refreshVersion: Number;
   taskId: string;
   isRoot: boolean;
 }
@@ -22,11 +24,16 @@ interface TaskListProps {
 // The TaskList holds all the task cards in a scrollable area
 // and fixes the Add Task button at the bottom.
 
-export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, isRoot}: TaskListProps) {
+export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskRefresh, refreshVersion, taskId, isRoot}: TaskListProps) {
     const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
     const [numberOfSubtasks, setNumberOfSubtasks] = useState(0);
     const [completed, setCompleted] = useState(0);
     const token = localStorage.getItem("token");
+
+    useEffect(() => {
+        handleTasksRefresh(); // TaskList performs its OWN fetch
+    }, [refreshVersion]);
+
 
     useEffect(() => {
         setLocalTasks(tasks);
@@ -117,6 +124,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, 
     const addTask = async () => {
         if (!boardId) return;
 
+        console.log("Creating task: ", isRoot, taskId);
         try {
             const response = await fetch(
                 `http://localhost:5001/api/tasks/board/${boardId}`,
@@ -141,7 +149,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, 
                 const data = await response.json();
                 const newTasks = [...localTasks, data.task];
                 setLocalTasks(newTasks);
-                handleTasksRefresh();
+                onTaskRefresh();
             }
         } catch (error) {
             console.error("Error adding task:", error);
@@ -193,7 +201,7 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, 
 
         try {
             const response = await fetch(
-                `http://localhost:5001/api/tasks/board/${boardId}`,
+                isRoot ? `http://localhost:5001/api/tasks/board/${boardId}` : `http://localhost:5001/api/tasks/${taskId}`,
                 {
                     headers: {
                         Authorization: token,
@@ -203,8 +211,10 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, 
 
             if (response.ok) {
                 const data = await response.json();
-                setLocalTasks(data.tasks);
-                calculateProgress(data.tasks);
+                let tasks = isRoot ? data.tasks : data.task.subtasks;
+                
+                setLocalTasks(tasks);
+                calculateProgress(tasks);
             }
         } catch (error) {
             console.error("Error refreshing tasks:", error);
