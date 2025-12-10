@@ -1,5 +1,7 @@
 import * as React from 'react';
-import { Box, TextField, Typography, Paper } from '@mui/material';
+import { Box, TextField, Typography, Paper, Link, Button, IconButton } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
 
 interface NotesPanelProps {
   selectedTask: {
@@ -13,6 +15,44 @@ interface NotesPanelProps {
 export default function NotesPanel({ selectedTask, onNotesChange }: NotesPanelProps) {
   const [localNotes, setLocalNotes] = React.useState('');
   const [saveTimeout, setSaveTimeout] = React.useState<NodeJS.Timeout | null>(null);
+  const [isEditing, setIsEditing] = React.useState(false);
+
+  // Function to detect and linkify URLs in text
+  const linkifyText = (text: string) => {
+    if (!text) return null;
+
+    // Regex to match URLs (http, https, www)
+    const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (!part) return null;
+
+      // Check if this part is a URL
+      if (part.match(urlRegex)) {
+        const href = part.startsWith('www.') ? `http://${part}` : part;
+        return (
+          <Link
+            key={index}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{ color: '#1976d2', wordBreak: 'break-all' }}
+          >
+            {part}
+          </Link>
+        );
+      }
+
+      // Regular text - preserve line breaks
+      return part.split('\n').map((line, lineIndex) => (
+        <React.Fragment key={`${index}-${lineIndex}`}>
+          {line}
+          {lineIndex < part.split('\n').length - 1 && <br />}
+        </React.Fragment>
+      ));
+    });
+  };
 
   // Update local notes when selected task changes
   React.useEffect(() => {
@@ -75,31 +115,83 @@ export default function NotesPanel({ selectedTask, onNotesChange }: NotesPanelPr
         overflow: 'hidden',
       }}
     >
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-        {selectedTask.title}
-      </Typography>
+      {/* Header with task title and edit button */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+          {selectedTask.title}
+        </Typography>
+        {isEditing ? (
+          <Button
+            size="small"
+            variant="contained"
+            startIcon={<SaveIcon />}
+            onClick={() => setIsEditing(false)}
+            sx={{ textTransform: 'none' }}
+          >
+            Done
+          </Button>
+        ) : (
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<EditIcon />}
+            onClick={() => setIsEditing(true)}
+            sx={{ textTransform: 'none' }}
+          >
+            Edit
+          </Button>
+        )}
+      </Box>
+
       <Typography variant="caption" color="text.secondary" sx={{ mb: 2 }}>
-        Task Notes
+        Notes
       </Typography>
-      <TextField
-        multiline
-        fullWidth
-        value={localNotes}
-        onChange={handleNotesChange}
-        placeholder="Add notes for this task..."
-        variant="outlined"
-        sx={{
-          flex: 1,
-          '& .MuiOutlinedInput-root': {
-            height: '100%',
-            alignItems: 'flex-start',
-          },
-          '& .MuiInputBase-input': {
-            height: '100% !important',
-            overflow: 'auto !important',
-          },
-        }}
-      />
+
+      {isEditing ? (
+        <TextField
+          multiline
+          fullWidth
+          value={localNotes}
+          onChange={handleNotesChange}
+          placeholder="Add notes for this task... (URLs will be automatically clickable)"
+          variant="outlined"
+          autoFocus
+          sx={{
+            flex: 1,
+            '& .MuiOutlinedInput-root': {
+              height: '100%',
+              alignItems: 'flex-start',
+            },
+            '& .MuiInputBase-input': {
+              height: '100% !important',
+              overflow: 'auto !important',
+            },
+          }}
+        />
+      ) : (
+        <Box
+          sx={{
+            flex: 1,
+            p: 2,
+            border: '1px solid #e0e0e0',
+            borderRadius: 1,
+            overflow: 'auto',
+            backgroundColor: '#fafafa',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+          }}
+        >
+          {localNotes ? (
+            <Typography variant="body2" component="div">
+              {linkifyText(localNotes)}
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+              No notes yet. Click "Edit" to add notes.
+            </Typography>
+          )}
+        </Box>
+      )}
     </Paper>
   );
 }
