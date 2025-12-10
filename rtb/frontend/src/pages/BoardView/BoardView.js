@@ -9,6 +9,7 @@ import AddTask from "../../components/AddTask.tsx";
 import ArrowUpward from "@mui/icons-material/ArrowUpward";
 import Check from "@mui/icons-material/Check";
 import TaskList from "../../components/TaskList.tsx";
+import NotesPanel from "../../components/NotesPanel.tsx";
 
 export default function BoardView() {
   const { boardId } = useParams();
@@ -16,12 +17,72 @@ export default function BoardView() {
   const [layer, setLayer] = useState(0);
   const [boardStack, setBoardStack] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState(null);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  
+
   const onClickSubtask = (taskId) => {
     fetchTaskBoard(taskId);
-  }
+  };
 
+  const handleTaskSelect = (task) => {
+    console.log("Task selected:", task);
+    setSelectedTask(task);
+  };
+
+  const handleNotesChange = async (taskId, newNotes) => {
+    console.log("Saving notes for task:", taskId, "Notes:", newNotes);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5001/api/tasks/${taskId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+          body: JSON.stringify({ notes: newNotes }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Notes saved successfully:", data);
+
+        // Update the selected task's notes in local state
+        setSelectedTask(prev => prev ? { ...prev, notes: newNotes } : null);
+
+        // Update the task in the board stack
+        setBoardStack(prevStack => {
+          return prevStack.map(board => {
+            // Helper to update task recursively
+            const updateTaskInList = (tasks) => {
+              return tasks.map(task => {
+                if (task._id === taskId) {
+                  return { ...task, notes: newNotes };
+                }
+                if (task.subtasks) {
+                  return { ...task, subtasks: updateTaskInList(task.subtasks) };
+                }
+                return task;
+              });
+            };
+
+            return {
+              ...board,
+              tasks: updateTaskInList(board.tasks)
+            };
+          });
+        });
+      } else {
+        console.error("Failed to save notes, status:", response.status);
+        const errorData = await response.json();
+        console.error("Error data:", errorData);
+      }
+    } catch (error) {
+      console.error("Error updating notes:", error);
+    }
+  };
 
   // Used to spawn a board card.
   // Both board and task data structures can be passed in for `board`, as both have title and tasks fields
@@ -219,7 +280,7 @@ const hasSpawnedInitialCard = useRef(false);
     <div className="board-view" style={{backgroundColor: "#282c34"}}>
 
       {/* This is the navbar at the top of the page*/}
-      <div className="board-navbar">        
+      <div className="board-navbar">
         <button className="back-button" onClick={handleBackToDashboard}>
           ← Back to Dashboard
         </button>
@@ -235,35 +296,65 @@ const hasSpawnedInitialCard = useRef(false);
         </div>
       </div>
 
-      {/* This is the actual board stuff */}
+      {/* Main content area with board cards and notes panel */}
+      <Box sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
+        height: 'calc(100vh - 80px)',
+        gap: 2,
+        p: 2,
+        overflow: 'hidden'
+      }}>
 
-      {boardStack.map(board => (
-      <BoardCard sx = {{minWidth: 345, transform: `translateX(${-board.layer * 8}px) translateY(${board.layer * 8}px) translateZ(${-board.layer}px)`, opacity: Math.max(0, 1 - board.layer * 0.33), transition: "left 0.5s ease, transform 0.3 ease, opacity 0.3 ease"}}>
-        <Box 
-          sx={{
-            display: 'flex',               // 1. Enable Flexbox
-            flexDirection: 'row',          // (Optional but explicit) Arrange children in a row
-            alignItems: 'stretch',         // Vertically centers the items (button, text, button)
-            gap: 1,                        // Adds spacing between the children (equivalent to theme.spacing(1))
-            p: 1,                          // Adds a little padding around the whole group
-            border: '1px solid #ccc',    // Just to visualize the container boundaries
-            width: "95%"
-          }}
-        >
-            <IconButton variant="outlined" onClick={()=> goUp()}>
-              <ArrowUpward sx={{color:"blue"}}/>
-            </IconButton>
-            <TextField value = {board.title} fullWidth> </TextField>
-            {/* <Typography variant="h6" component="h2" sx={{flex: 1, textAlign: "center"}}>Task Name</Typography> */}
-            <IconButton variant="outlined" onClick={() => spawnBoardCard("name", 500)}>
-              <Check sx = {{color:"black"}}/>
-            </IconButton>
+        {/* Left side - Board cards stack */}
+        <Box sx={{
+          flex: 1,
+          overflow: 'auto',
+          minWidth: 0
+        }}>
+          {boardStack.map(board => (
+            <BoardCard key={board._id} sx = {{minWidth: 345, transform: `translateX(${-board.layer * 8}px) translateY(${board.layer * 8}px) translateZ(${-board.layer}px)`, opacity: Math.max(0, 1 - board.layer * 0.33), transition: "left 0.5s ease, transform 0.3 ease, opacity 0.3 ease"}}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'stretch',
+                  gap: 1,
+                  p: 1,
+                  border: '1px solid #ccc',
+                  width: "95%"
+                }}
+              >
+                <IconButton variant="outlined" onClick={()=> goUp()}>
+                  <ArrowUpward sx={{color:"blue"}}/>
+                </IconButton>
+                <TextField value = {board.title} fullWidth> </TextField>
+                <IconButton variant="outlined" onClick={() => spawnBoardCard("name", 500)}>
+                  <Check sx = {{color:"black"}}/>
+                </IconButton>
+              </Box>
+
+              <TaskList
+                boardId={boardId}
+                taskId = {board.isRoot ? boardId : board._id}
+                tasks={board.tasks}
+                onClickSubtask={onClickSubtask}
+                onTaskSelect={handleTaskSelect}
+                selectedTaskId={selectedTask?._id}
+                isRoot={board.isRoot}
+              />
+
+            </BoardCard>
+          ))}
         </Box>
 
-        <TaskList boardId={boardId} taskId = {board.isRoot ? boardId : board._id} tasks={board.tasks} onClickSubtask={onClickSubtask} isRoot={board.isRoot} />
+        {/* Right side - Notes panel */}
+        <NotesPanel
+          selectedTask={selectedTask}
+          onNotesChange={handleNotesChange}
+        />
 
-      </BoardCard>      
-    ))}
+      </Box>
     </div>
   );
 }

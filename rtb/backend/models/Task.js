@@ -33,7 +33,11 @@ const taskSchema = new mongoose.Schema({
   type: Boolean,
   default: false,
   },
-
+  notes: {
+    type: String,
+    default: "",
+    trim: true
+  }
 });
 
 // Index for querying tasks by board

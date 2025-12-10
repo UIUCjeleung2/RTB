@@ -138,7 +138,7 @@ export const createTask = async (req, res) => {
 export const updateTask = async (req, res) => {
   try {
     const { taskId } = req.params;
-    const { title, status, parentTaskId, position } = req.body;
+    const { title, status, parentTaskId, position, notes } = req.body;
     const userId = req.user.id;
 
     const task = await Task.findById(taskId);
@@ -174,6 +174,7 @@ export const updateTask = async (req, res) => {
       task.status = status;
     }
     if (position !== undefined) task.position = position;
+    if (notes !== undefined) task.notes = notes;
 
     await task.save();
     res.json({ task });

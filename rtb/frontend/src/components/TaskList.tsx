@@ -9,12 +9,15 @@ interface TaskItem {
   status: string;
   subtasks?: TaskItem[];
   board: string;
+  notes?: string;
 }
 
 interface TaskListProps {
   boardId?: string;
   tasks?: TaskItem[];
   onClickSubtask: (taskId: string) => void;
+  onTaskSelect?: (task: TaskItem) => void;
+  selectedTaskId?: string;
   taskId: string;
   isRoot: boolean;
 }
@@ -22,7 +25,7 @@ interface TaskListProps {
 // The TaskList holds all the task cards in a scrollable area
 // and fixes the Add Task button at the bottom.
 
-export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, isRoot}: TaskListProps) {
+export default function TaskList({ boardId, tasks = [], onClickSubtask, onTaskSelect, selectedTaskId, taskId, isRoot}: TaskListProps) {
     const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
     const [numberOfSubtasks, setNumberOfSubtasks] = useState(0);
     const [completed, setCompleted] = useState(0);
@@ -247,6 +250,8 @@ export default function TaskList({ boardId, tasks = [], onClickSubtask, taskId, 
                         onTasksChange={handleTasksRefresh}
                         onOptimisticToggle={handleOptimisticToggle}
                         onClickSubtask={() => onClickSubtask(task._id)}
+                        onTaskSelect={() => onTaskSelect?.(task)}
+                        isSelected={selectedTaskId === task._id}
                     />
                 ))}
             </Box>

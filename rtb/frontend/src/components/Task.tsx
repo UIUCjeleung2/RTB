@@ -9,7 +9,8 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LinearProgress from "@mui/material/LinearProgress";
 import { CardContent } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import {Typography, Box, Menu, MenuItem, TextField, ClickAwayListener} from "@mui/material";
+import DescriptionIcon from '@mui/icons-material/Description';
+import {Typography, Box, Menu, MenuItem, TextField, ClickAwayListener, Tooltip} from "@mui/material";
 import EditableText from './EditableText.tsx';
 import SubtaskList from './SubtaskList.tsx';
 
@@ -19,6 +20,7 @@ interface SubtaskItem {
   completed: boolean;
   status: string;
   subtasks?: SubtaskItem[];
+  notes?: string;
 }
 
 interface TaskProps {
@@ -30,6 +32,8 @@ interface TaskProps {
   onTasksChange?: () => void;
   onOptimisticToggle?: (taskId: string, currentCompleted: boolean) => void;
   onClickSubtask: () => void;
+  onTaskSelect?: () => void;
+  isSelected?: boolean;
 }
 
 declare const process: {
@@ -47,6 +51,8 @@ export default function Task({
   onTasksChange,
   onOptimisticToggle,
   onClickSubtask,
+  onTaskSelect,
+  isSelected = false,
 }: TaskProps) {
 
   const DEBUG_BORDER = "1px solid red";
@@ -264,9 +270,26 @@ export default function Task({
     }
   };
 
+  const handleNotesClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onTaskSelect?.();
+  };
+
   return (
     // The actual card
-    <Card sx={{ maxWidth: 345, p: 1, borderRadius: 5, flexShrink: 0, cursor: 'pointer'}} onClick={onClickSubtask}>
+    <Card
+      sx={{
+        maxWidth: 345,
+        p: 1,
+        borderRadius: 5,
+        flexShrink: 0,
+        cursor: 'pointer',
+        border: isSelected ? '3px solid #1976d2' : '1px solid #e0e0e0',
+        backgroundColor: isSelected ? '#e3f2fd' : '#ffffff',
+        transition: 'all 0.2s ease',
+      }}
+      onClick={onClickSubtask}
+    >
 
       <Box id="subtask" sx={{display: 'flex', flexDirection: "column", justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
       
@@ -298,6 +321,17 @@ export default function Task({
             />
           </Box>
 
+            <Tooltip title="View notes">
+              <IconButton
+                aria-label="notes"
+                onClick={handleNotesClick}
+                sx={{
+                  color: isSelected ? '#1976d2' : 'inherit',
+                }}
+              >
+                <DescriptionIcon />
+              </IconButton>
+            </Tooltip>
             <IconButton aria-label="settings" onClick={handleOpen}>
               <MoreVertIcon />
             </IconButton>
