@@ -16,8 +16,13 @@ export default function BoardView() {
   const [layer, setLayer] = useState(0);
   const [boardStack, setBoardStack] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshVersion, setRefreshVersion] = useState(0);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   
+  const onTaskRefresh = () => {
+    setRefreshVersion(v => v + 1);  // increment token
+  };
+
   const onClickSubtask = (taskId) => {
     fetchTaskBoard(taskId);
   }
@@ -260,7 +265,7 @@ const hasSpawnedInitialCard = useRef(false);
             </IconButton>
         </Box>
 
-        <TaskList boardId={boardId} taskId = {board.isRoot ? boardId : board._id} tasks={board.tasks} onClickSubtask={onClickSubtask} isRoot={board.isRoot} />
+        <TaskList boardId={boardId} taskId = {board.isRoot ? boardId : board._id} tasks={board.tasks} onClickSubtask={onClickSubtask} onTaskRefresh={onTaskRefresh} refreshVersion={refreshVersion} isRoot={board.isRoot} />
 
       </BoardCard>      
     ))}
